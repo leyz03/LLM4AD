@@ -7,7 +7,7 @@
 | 文档 | 内容 |
 |---|---|
 | [跨领域调研与迁移设计](./literature-review.md) | 梳理算子距离、行为新颖性和信用分配方法，给出可迁移设计 |
-| [**行为感知的组合库协同进化**](./behavior-aware-portfolio-coevolution.md) | **当前设计基线：统一距离、变异坍缩与边际信用，记录架构、实验门禁和决策状态** |
+| [**行为感知的组合库协同进化**](./behavior-aware-portfolio-coevolution.md) | **当前设计基线：分别给出距离、变异坍缩、信用分配的操作方案，再说明三者如何进入同一协同进化闭环** |
 | [落地实施方案](./implementation-plan.md) | Stage 0 结论、LLM4AD 架构约束、分阶段路线与实验优先级 |
 | [Stage 0.5 复核与下一步](./stage05-review-and-next-steps.md) | 统计复核、算子退化诊断、构念效度问题与预注册规则 |
 | [**实验结果汇总**](./experiments/RESULTS.md) | **Stage 0 与 Stage 0.5 的全部关键数字、结论及其对课题走向的影响** |
