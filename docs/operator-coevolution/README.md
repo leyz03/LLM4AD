@@ -7,7 +7,9 @@
 | 文档 | 内容 |
 |---|---|
 | [跨领域调研与迁移设计](./literature-review.md) | 梳理算子距离、行为新颖性和信用分配方法，给出可迁移设计 |
+| [**行为感知的组合库协同进化**](./behavior-aware-portfolio-coevolution.md) | **当前设计基线：统一距离、变异坍缩与边际信用，记录架构、实验门禁和决策状态** |
 | [落地实施方案](./implementation-plan.md) | Stage 0 结论、LLM4AD 架构约束、分阶段路线与实验优先级 |
+| [Stage 0.5 复核与下一步](./stage05-review-and-next-steps.md) | 统计复核、算子退化诊断、构念效度问题与预注册规则 |
 | [**实验结果汇总**](./experiments/RESULTS.md) | **Stage 0 与 Stage 0.5 的全部关键数字、结论及其对课题走向的影响** |
 | [实验运行说明](./experiments/README.md) | 两个实验的环境、命令与产物说明 |
 
@@ -15,7 +17,8 @@
 
 1. 先读[实验结果汇总](./experiments/RESULTS.md)，一页看完已经确定的事实和当前的决策状态。
 2. 再读[跨领域调研](./literature-review.md)，理解距离度量与信用分配的设计空间。
-3. 最后读[落地实施方案](./implementation-plan.md)，了解阶段安排；按[运行说明](./experiments/README.md)复现即可核对全部数字。
+3. 然后读[行为感知的组合库协同进化](./behavior-aware-portfolio-coevolution.md)，了解调研与协同进化汇合后的当前设计。
+4. 最后用[落地实施方案](./implementation-plan.md)核对原始架构约束，并按[运行说明](./experiments/README.md)复现实验。
 
 ## 当前进度
 
@@ -25,4 +28,4 @@
 | Stage 0.5 经典算子 γ 审计 | 已完成 | [`experiments/results/stage05/`](./experiments/results/stage05/) |
 | Stage 1 可重放 LNS 环境 | 未开始 | — |
 
-**Stage 0.5 的结果触发了实施方案预先规定的止损条件**（γ 方差占比 < 10%），Stage 3 的 γ-UCB 配对策略不应按原计划直接投入。下一步的三条候选路径见[实验结果汇总](./experiments/RESULTS.md)末尾。
+Stage 0.5 在当前经典算子与单步 payoff 下没有发现足以支撑 `γ-UCB` 的交互信号；复核同时发现 repair 算子有效自由度严重退化，因此该结果不能直接外推到专才或 LLM 演化算子。当前主线已调整为[行为感知的组合库协同进化](./behavior-aware-portfolio-coevolution.md)，`γ` 保留为通过构念门禁后再决定是否启用的条件分支。

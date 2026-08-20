@@ -1,0 +1,110 @@
+{
+  "cvrp": {
+    "bias_correction": {
+      "f_statistic": 0.8945794749077951,
+      "naive_share": 0.008940639724730932,
+      "variance_component": -0.011492323029107243,
+      "corrected_share": 0.0
+    },
+    "redundancy": {
+      "repair": {
+        "mean_pairwise_corr": 0.854655375421826,
+        "max_pairwise_corr": 0.8963990927034066,
+        "effective_dof": 1.289162657153494,
+        "nominal_dof": 6.0
+      },
+      "destroy": {
+        "mean_pairwise_corr": 0.2448930222711799,
+        "max_pairwise_corr": 0.4161883063306741,
+        "effective_dof": 4.541710044353458,
+        "nominal_dof": 6.0
+      }
+    },
+    "permutation": {
+      "均值 (原口径)": {
+        "observed": 0.008940639724730932,
+        "null_median": 0.00984987287745654,
+        "null_q95": 0.014637658783840447,
+        "p_value": 0.6325
+      },
+      "P90 尾部": {
+        "observed": 0.008500542786345237,
+        "null_median": 0.034628716882443636,
+        "null_q95": 0.05159750783812827,
+        "p_value": 1.0
+      },
+      "最大值": {
+        "observed": 0.0863845749546701,
+        "null_median": 0.18466126859732615,
+        "null_q95": 0.256913228451463,
+        "p_value": 0.995
+      },
+      "标准差 (离散度)": {
+        "observed": 0.14612619830253773,
+        "null_median": 0.723847046128786,
+        "null_q95": 0.8631831233178915,
+        "p_value": 1.0
+      }
+    },
+    "power": {
+      "0.02": 1.0,
+      "0.05": 1.0,
+      "0.1": 1.0,
+      "0.2": 1.0
+    }
+  },
+  "vrptw": {
+    "bias_correction": {
+      "f_statistic": 1.3706522902022136,
+      "naive_share": 0.03028298357736103,
+      "variance_component": 0.03762599734665097,
+      "corrected_share": 0.008374152676898347
+    },
+    "redundancy": {
+      "repair": {
+        "mean_pairwise_corr": 0.7744657638384138,
+        "max_pairwise_corr": 0.9458272333330846,
+        "effective_dof": 1.493768438829766,
+        "nominal_dof": 6.0
+      },
+      "destroy": {
+        "mean_pairwise_corr": 0.2652518413381991,
+        "max_pairwise_corr": 0.4211734424014528,
+        "effective_dof": 4.367880996748629,
+        "nominal_dof": 6.0
+      }
+    },
+    "permutation": {
+      "均值 (原口径)": {
+        "observed": 0.03028298357736103,
+        "null_median": 0.02223572373075791,
+        "null_q95": 0.034286229016011444,
+        "p_value": 0.13
+      },
+      "P90 尾部": {
+        "observed": 0.020199779820533618,
+        "null_median": 0.058051834027989045,
+        "null_q95": 0.09102959579819886,
+        "p_value": 1.0
+      },
+      "最大值": {
+        "observed": 0.03299568078225395,
+        "null_median": 0.4245149570881267,
+        "null_q95": 0.6022979728259757,
+        "p_value": 1.0
+      },
+      "标准差 (离散度)": {
+        "observed": 0.12262324492517361,
+        "null_median": 0.7135046837287244,
+        "null_q95": 0.8777400635540967,
+        "p_value": 1.0
+      }
+    },
+    "power": {
+      "0.02": 0.7,
+      "0.05": 1.0,
+      "0.1": 1.0,
+      "0.2": 1.0
+    }
+  }
+}
