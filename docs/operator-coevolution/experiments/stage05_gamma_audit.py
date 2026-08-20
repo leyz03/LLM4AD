@@ -10,7 +10,7 @@ definition used by ``stage0_credit_estimator_validation.py``::
     gamma_share = Var(gamma) / Var(M)
 
 Raw observations, summaries, figures, and a Markdown report are written to
-``stage05_results`` by default.
+``results/stage05/q20-main`` next to this script by default.
 """
 
 from __future__ import annotations
@@ -31,6 +31,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
 
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+DEFAULT_OUTPUT = SCRIPT_DIR / "results" / "stage05" / "q20-main"
+# Path shown in the generated report's reproduce block, relative to the repo root.
+SCRIPT_INVOCATION = "docs/operator-coevolution/experiments/stage05_gamma_audit.py"
 
 DESTROY_NAMES = (
     "random_removal",
@@ -674,7 +679,7 @@ def write_report(
             "## 复现",
             "",
             "```powershell",
-            f"python stage05_gamma_audit.py --instances {args.instances} --repeats {args.repeats} --customers {args.customers} --remove-fraction {args.remove_fraction} --bootstrap {args.bootstrap} --seed {args.seed}",
+            f"python {SCRIPT_INVOCATION} --instances {args.instances} --repeats {args.repeats} --customers {args.customers} --remove-fraction {args.remove_fraction} --bootstrap {args.bootstrap} --seed {args.seed}",
             "```",
             "",
             f"本次运行耗时 {runtime:.1f} 秒。原始数据见 `raw_observations.csv`，完整数值见 `summary.json`，热力图见 `gamma_heatmaps.png`。",
@@ -692,7 +697,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--remove-fraction", type=float, default=0.20)
     parser.add_argument("--bootstrap", type=int, default=2000)
     parser.add_argument("--seed", type=int, default=20240820)
-    parser.add_argument("--output", type=Path, default=Path("stage05_results"))
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
     if args.instances < 2 or args.repeats < 2 or args.customers < 10 or not 0 < args.remove_fraction < 1:
         parser.error("need instances>=2, repeats>=2, customers>=10, and 0<remove-fraction<1")

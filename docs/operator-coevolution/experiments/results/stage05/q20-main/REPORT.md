@@ -85,7 +85,7 @@
 ## 复现
 
 ```powershell
-python stage05_gamma_audit.py --instances 12 --repeats 8 --customers 50 --remove-fraction 0.2 --bootstrap 2000 --seed 20240820
+python docs/operator-coevolution/experiments/stage05_gamma_audit.py --instances 12 --repeats 8 --customers 50 --remove-fraction 0.2 --bootstrap 2000 --seed 20240820
 ```
 
 本次运行耗时 67.7 秒。原始数据见 `raw_observations.csv`，完整数值见 `summary.json`，热力图见 `gamma_heatmaps.png`。

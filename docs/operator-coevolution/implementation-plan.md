@@ -83,12 +83,16 @@
 | γ 导向的主动探索 | **升为核心**，E2 是它的存在理由 |
 | 探针语义指纹 | 保留，但先做"能否达到 ρ≥0.5"的可行性验证再投入 |
 
-复现命令：
+复现命令（在仓库根目录运行）：
 
 ```bash
-python docs/operator-coevolution/experiments/stage0_credit_estimator_validation.py --experiment all --selection thompson --n-repeat 40
-python docs/operator-coevolution/experiments/stage0_credit_estimator_validation.py --experiment coverage --selection roulette
+# 结果一（E1）与结果二（E2）的表
+python docs/operator-coevolution/experiments/stage0_credit_estimator_validation.py --experiment all --selection thompson --n-repeat 30
+# 结果三（E3）的表
+python docs/operator-coevolution/experiments/stage0_credit_estimator_validation.py --experiment coldstart --selection roulette --n-repeat 60
 ```
+
+脚本种子为 `range(n_repeat)`，因此给定 `--n-repeat` 和 `--selection` 后结果完全确定；换了这两个参数结论方向不变但数值会差 1–2 个百分点（E3 的 `F 累加` 误杀率受 `--selection` 影响尤其大：roulette 下 94%，thompson 下 63%）。上面三张表各自对应的配置与原始输出见 [Stage 0 结果目录](./experiments/results/stage0/README.md)。
 
 ---
 
@@ -197,7 +201,7 @@ repair:  greedy_insertion, regret_2, regret_3,
 
 10%、20%、30% 三个移除比例的 γ 点估计均低于 10%，且交互检验均不显著。按本节预先规定的决策门槛，**当前经典算子 + 单步 payoff 上的交互项叙事不成立，VRPTW 也没有表现出实质更高的交互占比。** 下一步不应直接投入 Stage 3 的 γ-UCB；优先转向时序信用分配 / RUDDER，或先在标准 Solomon/CVRPLIB 实例和长轨迹 payoff 上做一次外部有效性复核。
 
-实现、原始数据、图和完整解释边界见仓库根目录的 `stage05_gamma_audit.py`、`stage05_results/` 与 `stage05_sensitivity/`。
+实现见 [`experiments/stage05_gamma_audit.py`](./experiments/stage05_gamma_audit.py)，原始数据、图与完整解释边界见 [`experiments/results/stage05/`](./experiments/results/stage05/)，跨阶段汇总与下一步的候选路径见[实验结果汇总](./experiments/RESULTS.md)。
 
 ---
 

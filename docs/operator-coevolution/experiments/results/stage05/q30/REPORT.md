@@ -6,7 +6,7 @@
 
 - 问题：CVRP、VRPTW；每类 8 个独立实例，每实例 6 个初始状态
 - 每格样本：48；每问题总观测：1728
-- 客户数：50；每次移除比例：10%
+- 客户数：50；每次移除比例：30%
 - payoff：一次 destroy–repair 后的相对距离改善百分比（允许负值）
 - 主指标：`Var(γ) / Var(M)`，与 Stage 0 脚本定义一致；95% CI 对实例做聚类 bootstrap
 - 辅助检验：随机区组二因素 ANOVA 的交互 F 检验及 partial η²（包含区组×处理噪声）
@@ -15,14 +15,14 @@
 
 | 问题 | γ 方差占比 | 95% 聚类 CI | partial η² | F(df) | p | 判定 |
 |---|---:|---:|---:|---:|---:|---|
-| CVRP | **1.9%** | [1.0%, 8.3%] | 0.6% | 0.40 (25, 1645) | 0.996 | 弱（<10%） |
-| VRPTW | **9.0%** | [3.8%, 26.1%] | 0.8% | 0.55 (25, 1645) | 0.965 | 弱（<10%） |
+| CVRP | **1.9%** | [1.4%, 4.8%] | 2.0% | 1.34 (25, 1645) | 0.121 | 弱（<10%） |
+| VRPTW | **3.7%** | [3.2%, 9.8%] | 1.7% | 1.14 (25, 1645) | 0.282 | 弱（<10%） |
 
 ## 决策
 
 - **CVRP**：交互叙事证据不足，建议转向时序信用分配或更强耦合测试床。
 - **VRPTW**：交互叙事证据不足，建议转向时序信用分配或更强耦合测试床。
-- **跨问题比较**：VRPTW 比 CVRP 高 7.2%，支持“约束增强会提高算子耦合”的方向性假设。
+- **跨问题比较**：两者仅相差 1.8%，没有实质证据表明时间窗提高了 γ。
 
 判定应以占比及其区间为主，而不是只看 p 值：样本多时很小的交互也可能显著。
 
@@ -32,29 +32,29 @@
 
 最正协同：
 
-- `time_oriented_removal × regret_2`：γ = +0.358 个百分点
-- `route_removal × best_position_first`：γ = +0.324 个百分点
-- `random_removal × regret_2`：γ = +0.304 个百分点
+- `route_removal × best_position_first`：γ = +1.391 个百分点
+- `route_removal × greedy_with_noise`：γ = +1.344 个百分点
+- `random_removal × regret_2`：γ = +0.834 个百分点
 
 最负协同：
 
-- `time_oriented_removal × best_position_first`：γ = -0.377 个百分点
-- `route_removal × regret_2`：γ = -0.328 个百分点
-- `time_oriented_removal × sequential_insertion`：γ = -0.243 个百分点
+- `route_removal × regret_2`：γ = -1.253 个百分点
+- `random_removal × best_position_first`：γ = -0.877 个百分点
+- `worst_removal × best_position_first`：γ = -0.733 个百分点
 
 ### VRPTW
 
 最正协同：
 
-- `random_removal × best_position_first`：γ = +0.346 个百分点
-- `worst_removal × regret_3`：γ = +0.325 个百分点
-- `route_removal × sequential_insertion`：γ = +0.242 个百分点
+- `time_oriented_removal × regret_3`：γ = +1.128 个百分点
+- `random_removal × greedy_with_noise`：γ = +1.074 个百分点
+- `random_removal × best_position_first`：γ = +0.848 个百分点
 
 最负协同：
 
-- `worst_removal × best_position_first`：γ = -0.454 个百分点
-- `random_removal × regret_3`：γ = -0.344 个百分点
-- `random_removal × regret_2`：γ = -0.341 个百分点
+- `time_oriented_removal × best_position_first`：γ = -0.913 个百分点
+- `random_removal × regret_3`：γ = -0.877 个百分点
+- `random_removal × regret_2`：γ = -0.653 个百分点
 
 ## 解释边界
 
@@ -66,7 +66,7 @@
 ## 复现
 
 ```powershell
-python stage05_gamma_audit.py --instances 8 --repeats 6 --customers 50 --remove-fraction 0.1 --bootstrap 1000 --seed 20240820
+python docs/operator-coevolution/experiments/stage05_gamma_audit.py --instances 8 --repeats 6 --customers 50 --remove-fraction 0.3 --bootstrap 1000 --seed 20240820 --output docs/operator-coevolution/experiments/results/stage05/q30
 ```
 
-本次运行耗时 11.4 秒。原始数据见 `raw_observations.csv`，完整数值见 `summary.json`，热力图见 `gamma_heatmaps.png`。
+本次运行耗时 67.1 秒。原始数据见 `raw_observations.csv`，完整数值见 `summary.json`，热力图见 `gamma_heatmaps.png`。
