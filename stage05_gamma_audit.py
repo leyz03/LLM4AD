@@ -606,6 +606,22 @@ def write_report(
             f"[{ci[0]:.1%}, {ci[1]:.1%}] | {float(summary['partial_eta_squared']):.1%} | "
             f"{float(summary['f_statistic']):.2f} ({summary['df_interaction']}, {summary['df_error']}) | {p_text} | {label} |"
         )
+    lines.extend(
+        [
+            "",
+            "系统性 cell-mean 方差的来源（3 项按构造合计为 100%）：",
+            "",
+            "| 问题 | destroy 主效应 α | repair 主效应 β | 交互 γ |",
+            "|---|---:|---:|---:|",
+        ]
+    )
+    for problem, summary in summaries.items():
+        cell_mean = np.asarray(summary["cell_mean"])
+        denominator = float(np.var(cell_mean))
+        alpha_share = float(np.var(np.asarray(summary["alpha"])) / denominator)
+        beta_share = float(np.var(np.asarray(summary["beta"])) / denominator)
+        gamma_share = float(summary["gamma_variance_share"])
+        lines.append(f"| {problem.upper()} | {alpha_share:.1%} | {beta_share:.1%} | {gamma_share:.1%} |")
     lines.extend(["", "## 决策", ""])
     for problem, (_, action) in decisions.items():
         lines.append(f"- **{problem.upper()}**：{action}")
