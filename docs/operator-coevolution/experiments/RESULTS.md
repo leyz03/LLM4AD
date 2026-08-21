@@ -125,6 +125,8 @@
 
 ## 结论与下一步
 
+> **2026-08-21 更新：** 后续已选择“LLM 变异退化为相似”为主线，并完成 Qwen 3.5 Flash 变异链 pilot 与 L0/L1+/L2/L3 多样性度量审计。L2 probe 输出距离在 13 个经典/手工/Qwen repair 上达到重测信度 0.981，对独立 held-out 输出行为和性能足迹的相关分别为 0.958、0.861；AST/token 与两者均为负相关。变异链因初始有效维度不足和 40.6% 无效率暂不能判定跨链坍缩。完整分析见[第一轮主线探索综合报告](./results/2026-08-21-mutation-diversity-report.md)。
+
 Stage 0 证明了"现有方法测不准 γ"，Stage 0.5 却发现"在当前测试床上 γ 本来就不大"。两者不矛盾，但合起来动摇了原定的论文主线：如果 γ 本身可忽略，那么"测不准 γ"这件事的实践重要性就下降了。
 
 按实施方案预先写好的止损规则，**不应直接投入 Stage 3 的 γ-UCB 配对策略**。三条候选路径，按建议优先级：
@@ -146,3 +148,6 @@ Stage 5 的探针语义指纹有一个廉价的先决验证可以随时做：用
 | 实验运行说明 | [`./README.md`](./README.md) |
 | Stage 0 脚本 / 结果 | [`stage0_credit_estimator_validation.py`](./stage0_credit_estimator_validation.py) ｜ [`results/stage0/`](./results/stage0/) |
 | Stage 0.5 脚本 / 结果 | [`stage05_gamma_audit.py`](./stage05_gamma_audit.py) ｜ [`results/stage05/`](./results/stage05/) |
+| Qwen 变异链 pilot | [`mutation_collapse_audit.py`](./mutation_collapse_audit.py) ｜ [`results/mutation-collapse/pilot/`](./results/mutation-collapse/pilot/) |
+| 多样性度量审计 | [`diversity_metric_audit.py`](./diversity_metric_audit.py) ｜ [`results/diversity-metrics/pilot/`](./results/diversity-metrics/pilot/) |
+| 第一轮综合报告 | [`results/2026-08-21-mutation-diversity-report.md`](./results/2026-08-21-mutation-diversity-report.md) |

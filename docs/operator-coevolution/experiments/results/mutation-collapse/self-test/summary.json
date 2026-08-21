@@ -1,0 +1,29 @@
+{
+  "mode": "self-test",
+  "decision": "INSUFFICIENT_FOR_SCIENTIFIC_DECISION",
+  "preregistered_rule": {
+    "minimum_design": "at least 3 chains, 4 generations, and validation initial effective dimension >= 2",
+    "strong_evidence": "effective dimension drop >=20% on calibration and validation, and late revisit rate >=50%"
+  },
+  "n_attempted_generations": 4,
+  "n_valid_children": 4,
+  "invalid_rate": 0.0,
+  "behavior_noise_95_validation": 0.0,
+  "late_behavior_revisit_rate": 0.0,
+  "effective_dimension": {
+    "calibration": [
+      1.4621171572600098,
+      1.4621171572600098,
+      1.4621171572600098
+    ],
+    "validation": [
+      1.4621171572600098,
+      1.4621171572600098,
+      1.4621171572600098
+    ]
+  },
+  "effective_dimension_drop": {
+    "calibration": 0.0,
+    "validation": 0.0
+  }
+}

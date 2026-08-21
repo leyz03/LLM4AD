@@ -1,0 +1,23 @@
+{
+  "chain": 2,
+  "generation": 5,
+  "seed": "block_reinsert",
+  "status": "valid",
+  "attempts": 0,
+  "error": "",
+  "l0_parent": 0.6225490196078431,
+  "l0_ancestor": 0.8072727272727273,
+  "l2_parent_calibration": 0.27248592623750095,
+  "l2_parent_validation": 0.24627418006480956,
+  "l2_ancestor_calibration": 0.26602971620277965,
+  "l2_ancestor_validation": 0.25528542757228057,
+  "l2_nearest_history_calibration": 0.26602971620277965,
+  "l2_nearest_history_validation": 0.24627418006480956,
+  "l2_nearest_history_calibration_adjusted": 0.005614518759430365,
+  "l2_nearest_history_validation_adjusted": 0.0,
+  "self_noise_calibration": 0.0,
+  "self_noise_validation": 0.0,
+  "mean_gain_calibration": 4.163140251188688,
+  "mean_gain_validation": 5.174365609980822,
+  "behavior_revisit": ""
+}

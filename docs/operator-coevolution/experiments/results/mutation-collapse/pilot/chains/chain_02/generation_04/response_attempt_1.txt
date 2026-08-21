@@ -1,0 +1,41 @@
+{
+"regret_priority_with_global_evaluation": "Orders customers by demand priority and evaluates top-k candidates using full solution_distance to select globally optimal insertion instead of local greedy"
+}
+
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    if not removed:
+        return result
+    
+    # Prioritize customers by demand (harder to place) rather than random order
+    work_order = sorted(removed, key=lambda c: problem.customers[c].demand, reverse=True)
+    
+    # Insertion budget per customer to enable lookahead
+    INSERTION_BUDGET = min(5, len(removed))
+    
+    for customer in work_order:
+        candidates = insertion_candidates(problem, result, customer)
+        
+        if not candidates:
+            continue
+        
+        # Evaluate solution impact for top candidates
+        evaluated = []
+        for i, (delta, route_idx, pos) in enumerate(candidates[:INSERTION_BUDGET]):
+            if route_feasible(problem, result[route_idx][:pos] + [customer] + result[route_idx][pos:]):
+                # Compute global solution distance for this candidate
+                test_routes = clone_routes(result)
+                apply_insertion(test_routes, customer, (delta, route_idx, pos))
+                global_dist = solution_distance(problem, test_routes)
+                evaluated.append((global_dist, delta, route_idx, pos))
+        
+        if evaluated:
+            # Select candidate minimizing global solution distance
+            evaluated.sort(key=lambda x: x[0])
+            best = evaluated[0]
+            apply_insertion(result, customer, (best[1], best[2], best[3]))
+        else:
+            # Fallback: use best local delta if no feasible in budget
+            apply_insertion(result, customer, candidates[0])
+    
+    return result

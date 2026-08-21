@@ -1,0 +1,65 @@
+We are evolving a repair operator for CVRP and VRPTW large-neighborhood search.
+The operator receives a feasible partial solution and the removed customers, and must return a
+complete feasible solution. Improve the parent while changing its algorithmic mechanism, not just
+renaming variables or tuning a numeric constant.
+
+You may use only these existing helpers (do not import anything):
+- clone_routes(routes) -> deep copy of the route list
+- insertion_candidates(problem, routes, customer) -> sorted (delta, route_index, position) tuples
+- apply_insertion(routes, customer, candidate) -> mutates routes with one insertion
+- route_feasible(problem, route) -> bool
+- route_distance(problem, route) -> float
+- solution_distance(problem, routes) -> float
+- np and the supplied rng (numpy Generator)
+
+Contract:
+def repair_operator(problem, routes, removed, rng):
+    # do not mutate routes or removed; return list[list[int]]
+
+Return one short algorithm description inside braces, followed by exactly one complete Python
+function named repair_operator. Do not emit imports, classes, files, network calls, global state,
+or additional helper functions.
+
+This is mutation chain 0, generation 5. The chain started from the
+'sequential' repair. Here is the current parent:
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    remaining = list(removed)
+    while remaining:
+        regrets = []
+        valid_indices = []
+        for i, cust in enumerate(remaining):
+            cands = insertion_candidates(problem, result, cust)
+            if not cands:
+                continue
+            if len(cands) >= 2:
+                reg = cands[1][0] - cands[0][0]
+            else:
+                reg = float('inf')
+            regrets.append(reg)
+            valid_indices.append(i)
+        if not valid_indices:
+            break
+        inf_indices = [idx for idx, reg in zip(valid_indices, regrets) if reg == float('inf')]
+        if inf_indices:
+            local_idx = rng.choice(len(inf_indices))
+            selected_remaining_idx = inf_indices[local_idx]
+        else:
+            total_regret = sum(regrets)
+            if total_regret == 0:
+                probs = [1.0 / len(regrets)] * len(regrets)
+            else:
+                probs = [r / total_regret for r in regrets]
+            local_idx = rng.choice(len(regrets), p=probs)
+            selected_remaining_idx = valid_indices[local_idx]
+        customer = remaining.pop(selected_remaining_idx)
+        cands = insertion_candidates(problem, result, customer)
+        if cands:
+            apply_insertion(result, customer, cands[0])
+    return result
+```
+
+Create exactly one modified child. The experiment will accept every valid child regardless of
+fitness, so do not discuss selection or compare multiple alternatives.

@@ -1,0 +1,273 @@
+Judge the algorithmic-mechanism diversity of the repair operators below.
+
+Ignore variable names, formatting, comments, and semantically equivalent refactoring. Focus on how
+customers are ordered, how insertion positions are chosen, whether customers are treated jointly,
+how randomness is used, and what residual structures the operator specializes in.
+
+Return JSON only with exactly these fields:
+- "ids": the IDs in the supplied order;
+- "descriptors": one concise mechanism description per ID in the same order;
+- "matrix": a symmetric numeric matrix in the same order, diagonal 0, where 0 means behaviorally
+  equivalent mechanism and 100 means fundamentally different mechanism.
+
+Do not add Markdown or explanations outside JSON.
+
+ID: qwen:chain_01:g07
+```python
+def repair_operator(problem, routes, removed, rng):
+    working_routes = clone_routes(routes)
+    pending = list(removed)
+    while pending:
+        evaluations = []
+        for cust in pending:
+            cands = insertion_candidates(problem, working_routes, cust)
+            if not cands:
+                evaluations.append((-1, float('inf'), cust))
+            else:
+                best_cost = cands[0][0]
+                count = len(cands)
+                evaluations.append((count, best_cost, cust))
+        evaluations.sort(key=lambda x: (x[0], x[1]))
+        min_count = evaluations[0][0]
+        tied_indices = [i for i, (cnt, _, _) in enumerate(evaluations) if cnt == min_count]
+        k = min(len(tied_indices), max(1, rng.integers(2, 5)))
+        idx = rng.integers(0, len(tied_indices))
+        target_idx = tied_indices[idx % len(tied_indices)]
+        target_cust = evaluations[target_idx][2]
+        pending.remove(target_cust)
+        cands = insertion_candidates(problem, working_routes, target_cust)
+        if cands:
+            apply_insertion(working_routes, target_cust, cands[0])
+    return working_routes
+```
+
+ID: classic:greedy_insertion
+```python
+def repair_operator(problem, routes, removed, rng):
+    order = removed.copy()
+    rng.shuffle(order)
+    return sequential_insertion(problem, routes, order, rng)
+```
+
+ID: control:sequential_rewrite
+```python
+def repair_operator(problem, routes, removed, rng):
+    del rng
+    result = clone_routes(routes)
+    pending = tuple(removed)
+    index = 0
+    while index < len(pending):
+        customer = pending[index]
+        options = insertion_candidates(problem, result, customer)
+        apply_insertion(result, customer, min(options, key=lambda item: item[0]))
+        index += 1
+    return result
+```
+
+ID: qwen:chain_00:g08
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    unplaced = list(removed)
+    while unplaced:
+        pool = []
+        for cust in unplaced:
+            cands = insertion_candidates(problem, result, cust)
+            for cand in cands:
+                pool.append((cand[0], cust, cand[1], cand[2]))
+        if not pool:
+            break
+        costs = np.array([item[0] for item in pool])
+        mask = np.isfinite(costs)
+        finite_mask_indices = np.where(mask)[0]
+        if len(finite_mask_indices) == 0:
+            weights = np.ones(len(pool))
+        else:
+            finite_costs = costs[mask]
+            min_cost = np.min(finite_costs)
+            shifted_costs = finite_costs - min_cost
+            weights = np.exp(-shifted_costs)
+            weights = weights / np.sum(weights)
+        full_weights = np.zeros(len(pool))
+        full_weights[mask] = weights
+        idx = rng.choice(len(pool), p=full_weights)
+        _, cust, r_idx, pos = pool[idx]
+        candidate = (pool[idx][0], pool[idx][2], pool[idx][3])
+        apply_insertion(result, cust, candidate)
+        unplaced.remove(cust)
+    return result
+```
+
+ID: classic:regret_2
+```python
+def repair_operator(problem, routes, removed, rng):
+    return regret_insertion(problem, routes, removed, rng, 2)
+```
+
+ID: qwen:chain_02:g08
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    if not removed:
+        return result
+    active_removed = list(removed)
+    while active_removed:
+        regrets = []
+        for idx, cust in enumerate(active_removed):
+            cands = insertion_candidates(problem, result, cust)
+            feasible_costs = []
+            for delta, r_idx, pos in cands:
+                if 0 <= pos <= len(result[r_idx]):
+                    temp_route = result[r_idx][:pos] + [cust] + result[r_idx][pos:]
+                    if route_feasible(problem, temp_route):
+                        feasible_costs.append(delta)
+                if len(feasible_costs) >= 2:
+                    break
+            if len(feasible_costs) < 2:
+                regrets.append(float('inf'))
+            else:
+                regrets.append(feasible_costs[1] - feasible_costs[0])
+        weights = [r if not np.isinf(r) else 1e+100 for r in regrets]
+        total_weight = sum(weights)
+        if total_weight == 0:
+            probs = [1.0 / len(active_removed)] * len(active_removed)
+        else:
+            probs = [w / total_weight for w in weights]
+        chosen_idx = rng.choice(len(active_removed), p=probs)
+        cust = active_removed.pop(chosen_idx)
+        cands = insertion_candidates(problem, result, cust)
+        best_candidate = None
+        for delta, r_idx, pos in cands:
+            if 0 <= pos <= len(result[r_idx]):
+                temp_route = result[r_idx][:pos] + [cust] + result[r_idx][pos:]
+                if route_feasible(problem, temp_route):
+                    best_candidate = (delta, r_idx, pos)
+                    break
+        if best_candidate:
+            apply_insertion(result, cust, best_candidate)
+        elif cands:
+            apply_insertion(result, cust, cands[0])
+    return result
+```
+
+ID: classic:sequential_insertion
+```python
+def repair_operator(problem, routes, removed, rng):
+    del rng
+    result = clone_routes(routes)
+    for customer in removed:
+        apply_insertion(result, customer, insertion_candidates(problem, result, customer)[0])
+    return result
+```
+
+ID: specialist:new_route
+```python
+def repair_operator(problem, routes, removed, rng):
+    del problem, rng
+    result = clone_routes(routes)
+    for customer in removed:
+        result.append([customer])
+    return result
+```
+
+ID: classic:regret_3
+```python
+def repair_operator(problem, routes, removed, rng):
+    return regret_insertion(problem, routes, removed, rng, 3)
+```
+
+ID: specialist:block_reinsert
+```python
+def repair_operator(problem, routes, removed, rng):
+    del rng
+    result = clone_routes(routes)
+    if not removed:
+        return result
+    best = None
+    for order in (removed.copy(), list(reversed(removed))):
+        for route_index, route in enumerate(result):
+            old_cost = route_distance(problem, route)
+            for position in range(len(route) + 1):
+                candidate_route = route[:position] + order + route[position:]
+                if route_feasible(problem, candidate_route):
+                    delta = route_distance(problem, candidate_route) - old_cost
+                    item = (float(delta), route_index, position, order)
+                    if best is None or item[:3] < best[:3]:
+                        best = item
+    if best is not None:
+        _, route_index, position, order = best
+        result[route_index][position:position] = order
+        return result
+    for customer in removed:
+        apply_insertion(result, customer, insertion_candidates(problem, result, customer)[0])
+    return result
+```
+
+ID: qwen:chain_03:g06
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+
+    def estimate_difficulty(customer):
+        candidates = insertion_candidates(problem, result, customer)
+        feasible_count = 0
+        for delta, r_idx, pos in candidates:
+            test_route = result[r_idx][:]
+            test_route.insert(pos, customer)
+            if route_feasible(problem, test_route):
+                feasible_count += 1
+        return feasible_count
+    sorted_removed = sorted(removed, key=estimate_difficulty)
+    for customer in sorted_removed:
+        candidates = insertion_candidates(problem, result, customer)
+        feasible_opts = []
+        for delta, r_idx, pos in candidates:
+            test_route = result[r_idx][:]
+            test_route.insert(pos, customer)
+            if route_feasible(problem, test_route):
+                feasible_opts.append((delta, r_idx, pos))
+        if not feasible_opts:
+            result.append([customer])
+            continue
+        feasible_opts.sort(key=lambda x: x[0])
+        epsilon = 0.1
+        if rng.random() < epsilon:
+            idx = rng.choice(len(feasible_opts))
+        else:
+            k = min(3, len(feasible_opts))
+            idx = rng.choice(k)
+        apply_insertion(result, customer, feasible_opts[idx])
+    return [route for route in result if route]
+```
+
+ID: classic:greedy_with_noise
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    pending = removed.copy()
+    noise_scale = 0.2 * float(np.mean(problem.distance))
+    while pending:
+        choices = []
+        for customer in pending:
+            for candidate in insertion_candidates(problem, result, customer):
+                noisy_delta = candidate[0] + rng.uniform(-noise_scale, noise_scale)
+                choices.append((float(noisy_delta), customer, candidate))
+        _, customer, candidate = min(choices, key=lambda item: item[0])
+        apply_insertion(result, customer, candidate)
+        pending.remove(customer)
+    return result
+```
+
+ID: classic:best_position_first
+```python
+def repair_operator(problem, routes, removed, rng):
+    del rng
+    result = clone_routes(routes)
+    pending = removed.copy()
+    while pending:
+        choices = [(insertion_candidates(problem, result, c)[0][0], c, insertion_candidates(problem, result, c)[0]) for c in pending]
+        _, customer, candidate = min(choices, key=lambda item: (item[0], item[1]))
+        apply_insertion(result, customer, candidate)
+        pending.remove(customer)
+    return result
+```

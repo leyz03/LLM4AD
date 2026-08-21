@@ -1,0 +1,3 @@
+﻿chain,generation,seed,status,attempts,error,l0_parent,l0_ancestor,l2_parent_calibration,l2_parent_validation,l2_ancestor_calibration,l2_ancestor_validation,l2_nearest_history_calibration,l2_nearest_history_validation,self_noise_calibration,self_noise_validation,mean_gain_calibration,mean_gain_validation,behavior_revisit
+0,0,sequential,seed,0,,nan,nan,nan,nan,nan,nan,nan,nan,0.0,0.0,2.3634169401773395,-0.09765489973086491,
+0,1,sequential,valid,1,,0.8413793103448276,0.8413793103448276,0.216610122868146,0.2074431714857247,0.216610122868146,0.2074431714857247,0.216610122868146,0.2074431714857247,0.14848534379426825,0.14065934065934066,1.537022376548722,1.5880135558956077,False

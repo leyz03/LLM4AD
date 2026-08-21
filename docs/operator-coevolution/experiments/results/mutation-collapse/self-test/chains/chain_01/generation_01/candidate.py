@@ -1,0 +1,23 @@
+def repair_operator(problem, routes, removed, rng):
+    del rng
+    result = clone_routes(routes)
+    if not removed:
+        return result
+    best = None
+    for order in (removed.copy(), list(reversed(removed))):
+        for route_index, route in enumerate(result):
+            old_cost = route_distance(problem, route)
+            for position in range(len(route) + 1):
+                candidate_route = route[:position] + order + route[position:]
+                if route_feasible(problem, candidate_route):
+                    delta = route_distance(problem, candidate_route) - old_cost
+                    item = (float(delta), route_index, position, order)
+                    if best is None or item[:3] < best[:3]:
+                        best = item
+    if best is not None:
+        _, route_index, position, order = best
+        result[route_index][position:position] = order
+        return result
+    for customer in removed:
+        apply_insertion(result, customer, insertion_candidates(problem, result, customer)[0])
+    return result

@@ -1,0 +1,46 @@
+{Prioritize customers by initial insertion regret to handle constrained requests first, then apply stochastic selection among top-N candidates to increase diversification in large-neighborhood search repairs.}
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    
+    # Calculate initial regret scores to determine processing priority
+    # We do not mutate 'removed', so we create a working list
+    to_repair = list(removed)
+    
+    priority_queue = []
+    for cust in to_repair:
+        cands = insertion_candidates(problem, result, cust)
+        if not cands:
+            continue
+        
+        # Calculate regret: difference between best and second best
+        if len(cands) > 1:
+            regret = cands[1][0] - cands[0][0]
+        else:
+            regret = float('inf')
+        
+        priority_queue.append((regret, cust))
+    
+    # Sort by regret descending (hardest to insert customers first)
+    priority_queue.sort(key=lambda x: x[0], reverse=True)
+    
+    # Process customers in priority order with stochastic insertion
+    for _, cust in priority_queue:
+        # Re-calculate candidates against current state of 'result'
+        cands = insertion_candidates(problem, result, cust)
+        if not cands:
+            continue
+        
+        # Stochastic selection from top candidates (diversification)
+        num_options = len(cands)
+        k = min(num_options, 5)  # Limit stochasticity to top 5
+        
+        # Select a random index from [0, k)
+        idx = rng.integers(k)
+        
+        # Apply insertion
+        apply_insertion(result, cust, cands[idx])
+        
+    return result
+```

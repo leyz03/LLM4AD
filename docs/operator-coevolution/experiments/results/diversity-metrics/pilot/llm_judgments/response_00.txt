@@ -1,0 +1,47 @@
+{
+  "ids": [
+    "qwen:chain_03:g06",
+    "control:sequential_rewrite",
+    "classic:sequential_insertion",
+    "classic:greedy_with_noise",
+    "classic:regret_3",
+    "specialist:block_reinsert",
+    "classic:best_position_first",
+    "specialist:new_route",
+    "qwen:chain_02:g08",
+    "classic:greedy_insertion",
+    "qwen:chain_00:g08",
+    "qwen:chain_01:g07",
+    "classic:regret_2"
+  ],
+  "descriptors": [
+    "Difficulty-sorted greedy with epsilon-randomization",
+    "Sequential fixed-order greedy insertion (min cost)",
+    "Sequential fixed-order first-fit insertion",
+    "Global pool selection with additive noise",
+    "Regret-based selection (k=3)",
+    "Block reinsertion specialist with fallback",
+    "Sequential fixed-order greedy with tie-breaking",
+    "Naive new-route creation",
+    "Probabilistic regret-based selection",
+    "Randomized sequential greedy insertion",
+    "Global pool selection with softmax weighting",
+    "Feasibility-count sorted greedy with randomized tie-breaking",
+    "Regret-based selection (k=2)"
+  ],
+  "matrix": [
+    [0, 60, 60, 55, 55, 45, 60, 95, 55, 60, 55, 75, 55],
+    [60, 0, 95, 50, 50, 45, 95, 95, 50, 85, 50, 60, 50],
+    [60, 95, 0, 50, 50, 45, 95, 95, 50, 85, 50, 60, 50],
+    [55, 50, 50, 0, 50, 45, 50, 95, 50, 50, 70, 55, 50],
+    [55, 50, 50, 50, 0, 45, 50, 95, 80, 50, 50, 55, 95],
+    [45, 45, 45, 45, 45, 0, 45, 60, 45, 45, 45, 45, 45],
+    [60, 95, 95, 50, 50, 45, 0, 95, 50, 85, 50, 60, 50],
+    [95, 95, 95, 95, 95, 60, 95, 0, 95, 95, 95, 95, 95],
+    [55, 50, 50, 50, 80, 45, 50, 95, 0, 50, 50, 55, 80],
+    [60, 85, 85, 50, 50, 45, 85, 95, 50, 0, 50, 60, 50],
+    [55, 50, 50, 70, 50, 45, 50, 95, 50, 50, 0, 55, 50],
+    [75, 60, 60, 55, 55, 45, 60, 95, 55, 60, 55, 0, 55],
+    [55, 50, 50, 50, 95, 45, 50, 95, 80, 50, 50, 55, 0]
+  ]
+}

@@ -1,0 +1,67 @@
+{Regret-based ordering of removed customers prioritizing difficult insertions, followed by greedy best-feasible placement}
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    if not removed:
+        return result
+    
+    # Compute Regret scores statically to determine insertion priority
+    # Regret = Cost(2nd Best Feasible) - Cost(1st Best Feasible)
+    # Higher regret indicates harder-to-place customers
+    customer_priorities = []
+    for cust in removed:
+        cands = insertion_candidates(problem, result, cust)
+        feasible_costs = []
+        
+        # Check feasibility of top candidates to calculate regret
+        # Limit checks to avoid overhead while capturing worst-case gap
+        check_count = 0
+        for delta, r_idx, pos in cands:
+            if check_count >= 2:
+                break
+            # Construct temporary route to check feasibility without mutating result
+            current_route = result[r_idx]
+            # Ensure pos is valid
+            if 0 <= pos <= len(current_route):
+                temp_route = current_route[:pos] + [cust] + current_route[pos:]
+                if route_feasible(problem, temp_route):
+                    feasible_costs.append(delta)
+            check_count += 1
+        
+        if len(feasible_costs) == 0:
+            regret = float('inf')
+        elif len(feasible_costs) == 1:
+            regret = float('inf')
+        else:
+            regret = feasible_costs[1] - feasible_costs[0]
+            
+        customer_priorities.append((regret, cust))
+    
+    # Sort customers by regret descending (hardest to insert first)
+    customer_priorities.sort(key=lambda x: x[0], reverse=True)
+    work_order = [item[1] for item in customer_priorities]
+    
+    # Insert customers in prioritized order
+    for cust in work_order:
+        cands = insertion_candidates(problem, result, cust)
+        best_candidate = None
+        
+        # Find first feasible candidate
+        for delta, r_idx, pos in cands:
+            current_route = result[r_idx]
+            if 0 <= pos <= len(current_route):
+                temp_route = current_route[:pos] + [cust] + current_route[pos:]
+                if route_feasible(problem, temp_route):
+                    best_candidate = (delta, r_idx, pos)
+                    break
+        
+        # Apply insertion
+        if best_candidate:
+            apply_insertion(result, cust, best_candidate)
+        elif cands:
+            # Fallback to maintain completeness if no feasible spot exists
+            # This maintains the invariant of completing the solution, though strictly
+            # we aim for feasibility. Prioritize the cheapest regardless of feasibility
+            # to prevent leaving customers unrepaired in the output.
+            apply_insertion(result, cust, cands[0])
+            
+    return result

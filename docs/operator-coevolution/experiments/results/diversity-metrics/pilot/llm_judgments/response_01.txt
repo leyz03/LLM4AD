@@ -1,0 +1,47 @@
+{
+  "ids": [
+    "classic:best_position_first",
+    "classic:regret_3",
+    "classic:greedy_insertion",
+    "classic:sequential_insertion",
+    "qwen:chain_01:g07",
+    "qwen:chain_00:g08",
+    "specialist:new_route",
+    "classic:greedy_with_noise",
+    "classic:regret_2",
+    "qwen:chain_02:g08",
+    "control:sequential_rewrite",
+    "qwen:chain_03:g06",
+    "specialist:block_reinsert"
+  ],
+  "descriptors": [
+    "Dynamic greedy: selects pending customer with globally minimal insertion cost.",
+    "Regret heuristic: prioritizes customers with high regret (k=3) before insertion.",
+    "Randomized greedy: shuffles removal order, then inserts greedily.",
+    "Static greedy: inserts removed customers in fixed order using best position.",
+    "Difficulty-sorted greedy: sorts by candidate count, breaks ties by cost, random pick among ties.",
+    "Softmax pool selection: samples insertion candidates from global pool using cost-weighted probabilities.",
+    "New route creation: places each removed customer into a dedicated new route.",
+    "Noisy greedy: selects customer with globally minimal noisy insertion cost.",
+    "Regret heuristic: prioritizes customers with high regret (k=2) before insertion.",
+    "Probabilistic regret: selects customer based on regret-value weighted probabilities.",
+    "Static greedy rewrite: identical to static greedy, explicit index iteration.",
+    "Difficulty-sorted probabilistic: sorts by feasibility count, probabilistic insertion selection.",
+    "Block reinsertion: attempts to insert removed block as unit into existing route."
+  ],
+  "matrix": [
+    [0, 50, 35, 30, 35, 75, 95, 15, 50, 50, 30, 35, 80],
+    [50, 0, 40, 40, 40, 75, 95, 40, 5, 25, 40, 40, 80],
+    [35, 40, 0, 10, 30, 75, 95, 20, 40, 40, 10, 30, 80],
+    [30, 40, 10, 0, 25, 75, 95, 30, 40, 40, 0, 25, 80],
+    [35, 40, 30, 25, 0, 70, 95, 30, 40, 40, 25, 20, 80],
+    [75, 75, 75, 75, 70, 0, 90, 75, 75, 60, 75, 70, 85],
+    [95, 95, 95, 95, 95, 90, 0, 95, 95, 95, 95, 95, 90],
+    [15, 40, 20, 30, 30, 75, 95, 0, 40, 40, 30, 30, 80],
+    [50, 5, 40, 40, 40, 75, 95, 40, 0, 25, 40, 40, 80],
+    [50, 25, 40, 40, 40, 60, 95, 40, 25, 0, 40, 40, 80],
+    [30, 40, 10, 0, 25, 75, 95, 30, 40, 40, 0, 25, 80],
+    [35, 40, 30, 25, 20, 70, 95, 30, 40, 40, 25, 0, 80],
+    [80, 80, 80, 80, 80, 85, 90, 80, 80, 80, 80, 80, 0]
+  ]
+}

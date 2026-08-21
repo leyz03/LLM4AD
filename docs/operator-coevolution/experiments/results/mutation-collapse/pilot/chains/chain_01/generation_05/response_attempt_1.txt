@@ -1,0 +1,28 @@
+{Constraint-based repair using fewest-insertion-point-first ordering with deterministic greedy selection}
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    working_routes = clone_routes(routes)
+    pending = list(removed)
+    
+    while pending:
+        # Score customers by constraint level: fewer valid insertions = higher priority
+        constraints = []
+        for cust in pending:
+            cands = insertion_candidates(problem, working_routes, cust)
+            constraints.append((len(cands), cust))
+        
+        # Most constrained customer processed first (ascending by available slots)
+        constraints.sort(key=lambda x: x[0])
+        
+        cust = constraints[0][1]
+        pending.remove(cust)
+        
+        # Deterministic greedy selection: always take best insertion
+        cands = insertion_candidates(problem, working_routes, cust)
+        if cands:
+            best_cand = min(cands, key=lambda x: x[0])
+            apply_insertion(working_routes, cust, best_cand)
+    
+    return working_routes
+```

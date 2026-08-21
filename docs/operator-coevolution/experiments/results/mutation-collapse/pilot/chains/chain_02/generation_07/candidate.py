@@ -1,0 +1,46 @@
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    if not removed:
+        return result
+    active_removed = list(removed)
+
+    def get_time_window_slack(customer_id):
+        tw_start, tw_end = problem.customers[customer_id]['tw']
+        arrival = problem.time_matrix[0][customer_id]
+        service_time = problem.customers[customer_id]['service_time']
+        slack = max(0, tw_end - arrival - service_time)
+        return slack
+    active_removed.sort(key=lambda c: get_time_window_slack(c))
+
+    def get_route_load_balance(r_idx):
+        if r_idx >= len(result) or not result[r_idx]:
+            return 10000000000.0
+        route = result[r_idx]
+        demand = sum((problem.customers[c]['demand'] for c in route))
+        return demand / max(problem.vehicle_capacity, 1)
+    while active_removed:
+        cust = active_removed.pop(0)
+        cands = insertion_candidates(problem, result, cust)
+        feasible_cands = []
+        for delta, r_idx, pos in cands:
+            if 0 <= pos <= len(result[r_idx]):
+                temp_route = result[r_idx][:pos] + [cust] + result[r_idx][pos:]
+                if route_feasible(problem, temp_route):
+                    load_score = get_route_load_balance(r_idx)
+                    feasible_cands.append((delta, r_idx, pos, load_score))
+        if not feasible_cands:
+            feasible_cands = [(float('inf'), r_idx, pos, get_route_load_balance(r_idx)) for delta, r_idx, pos in cands if 0 <= pos <= len(result[r_idx])]
+        feasible_cands.sort(key=lambda x: (x[0], x[3]))
+        k = min(max(1, int(len(feasible_cands) * 0.3)), len(feasible_cands))
+        selected = feasible_cands[:k]
+        if selected:
+            weights = [rng.random() * (1.0 - s[3] / max(s[3], 1e-10)) for s in selected]
+            if sum(weights) == 0:
+                weights = [1.0] * len(selected)
+            probs = [w / sum(weights) for w in weights]
+            idx = rng.choice(len(selected), p=probs)
+            best_candidate = selected[idx]
+            apply_insertion(result, cust, (best_candidate[0], best_candidate[1], best_candidate[2]))
+        else:
+            break
+    return result

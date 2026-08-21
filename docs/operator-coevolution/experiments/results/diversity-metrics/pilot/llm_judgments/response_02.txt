@@ -1,0 +1,47 @@
+{
+  "ids": [
+    "qwen:chain_01:g07",
+    "classic:greedy_insertion",
+    "control:sequential_rewrite",
+    "qwen:chain_00:g08",
+    "classic:regret_2",
+    "qwen:chain_02:g08",
+    "classic:sequential_insertion",
+    "specialist:new_route",
+    "classic:regret_3",
+    "specialist:block_reinsert",
+    "qwen:chain_03:g06",
+    "classic:greedy_with_noise",
+    "classic:best_position_first"
+  ],
+  "descriptors": [
+    "Feasibility-priority iterative greedy with tie-breaking",
+    "Randomized order sequential greedy",
+    "Deterministic sequential greedy",
+    "Global weighted probabilistic insertion pool",
+    "Regret-k=2 heuristic ordering",
+    "Regret-weighted probabilistic customer selection",
+    "Deterministic sequential greedy",
+    "New route creation fallback",
+    "Regret-k=3 heuristic ordering",
+    "Block reinsertion preserving relative order",
+    "Difficulty-sorted stochastic greedy",
+    "Cost-noise perturbed global greedy",
+    "Absolute cost global greedy"
+  ],
+  "matrix": [
+    [0, 60, 70, 60, 70, 60, 70, 95, 70, 90, 55, 60, 60],
+    [60, 0, 40, 60, 60, 60, 40, 90, 60, 85, 60, 70, 60],
+    [70, 40, 0, 60, 60, 60, 5, 90, 60, 85, 60, 70, 60],
+    [60, 60, 60, 0, 70, 70, 60, 95, 70, 85, 60, 70, 60],
+    [70, 60, 60, 70, 0, 80, 60, 95, 80, 85, 60, 70, 60],
+    [60, 60, 60, 70, 80, 0, 60, 95, 80, 85, 60, 70, 60],
+    [70, 40, 5, 60, 60, 60, 0, 90, 60, 85, 60, 70, 60],
+    [95, 90, 90, 95, 95, 95, 90, 0, 95, 95, 95, 90, 95],
+    [70, 60, 60, 70, 80, 80, 60, 95, 0, 85, 60, 70, 60],
+    [90, 85, 85, 85, 85, 85, 85, 95, 85, 0, 85, 80, 85],
+    [55, 60, 60, 60, 60, 60, 60, 95, 60, 85, 0, 60, 60],
+    [60, 70, 70, 70, 70, 70, 70, 90, 70, 80, 60, 0, 70],
+    [60, 60, 60, 60, 60, 60, 60, 95, 60, 85, 60, 70, 0]
+  ]
+}

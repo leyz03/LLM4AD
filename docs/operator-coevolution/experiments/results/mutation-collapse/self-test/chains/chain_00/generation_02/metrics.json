@@ -1,0 +1,21 @@
+{
+  "chain": 0,
+  "generation": 2,
+  "seed": "sequential",
+  "status": "valid",
+  "attempts": 1,
+  "error": "",
+  "l0_parent": 0.9533333333333334,
+  "l0_ancestor": 0.785234899328859,
+  "l2_parent_calibration": 0.14908578201708927,
+  "l2_parent_validation": 0.252785791444328,
+  "l2_ancestor_calibration": 0.0,
+  "l2_ancestor_validation": 0.02564102564102564,
+  "l2_nearest_history_calibration": 0.0,
+  "l2_nearest_history_validation": 0.02564102564102564,
+  "self_noise_calibration": 0.0,
+  "self_noise_validation": 0.0,
+  "mean_gain_calibration": 2.3634169401773395,
+  "mean_gain_validation": -1.6393645055893953,
+  "behavior_revisit": ""
+}

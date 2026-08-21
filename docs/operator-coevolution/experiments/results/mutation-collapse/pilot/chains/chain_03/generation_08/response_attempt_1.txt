@@ -1,0 +1,48 @@
+{Uses cost-weighted probabilistic selection instead of epsilon-greedy, with route load balancing}
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    
+    def get_route_load(route):
+        return len(route)
+    
+    sorted_removed = list(removed)
+    rng.shuffle(sorted_removed)
+    
+    for customer in sorted_removed:
+        candidates = insertion_candidates(problem, result, customer)
+        
+        feasible_opts = []
+        for delta, r_idx, pos in candidates:
+            test_route = result[r_idx][:]
+            test_route.insert(pos, customer)
+            if route_feasible(problem, test_route):
+                feasible_opts.append((delta, r_idx, pos))
+        
+        if not feasible_opts:
+            result.append([customer])
+            continue
+        
+        best_delta = min(x[0] for x in feasible_opts)
+        max_delta = max(x[0] for x in feasible_opts)
+        
+        if max_delta == best_delta:
+            weights = [1.0] * len(feasible_opts)
+        else:
+            weights = [1.0 / (d - best_delta + 1e-6) for d, _, _ in feasible_opts]
+        
+        total_weight = sum(weights)
+        probs = [w / total_weight for w in weights]
+        
+        cumulative = [0.0]
+        for p in probs:
+            cumulative.append(cumulative[-1] + p)
+        
+        rand_val = rng.random()
+        selected_idx = next(i for i, c in enumerate(cumulative) if c > rand_val)
+        
+        apply_insertion(result, customer, feasible_opts[selected_idx])
+    
+    return [route for route in result if route]
+```

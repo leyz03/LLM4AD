@@ -1,0 +1,26 @@
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+
+    def calculate_cost_weight(delta, num_feasible):
+        if num_feasible == 0:
+            return float('inf')
+        base = delta + 0.01 * np.log(num_feasible + 1)
+        return 1.0 / (base + 1e-10)
+    for customer in removed:
+        candidates = insertion_candidates(problem, result, customer)
+        feasible_opts = []
+        for delta, r_idx, pos in candidates:
+            test_route = result[r_idx][:]
+            test_route.insert(pos, customer)
+            if route_feasible(problem, test_route):
+                feasible_opts.append((delta, r_idx, pos))
+        if not feasible_opts:
+            result.append([customer])
+            continue
+        num_feasible = len(feasible_opts)
+        weights = [calculate_cost_weight(delta, num_feasible) for delta, _, _ in feasible_opts]
+        total = sum(weights)
+        probs = [w / total for w in weights]
+        idx = rng.choice(len(feasible_opts), p=probs)
+        apply_insertion(result, customer, feasible_opts[idx])
+    return result

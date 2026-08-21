@@ -1,0 +1,41 @@
+{Shifts from regret-based probabilistic ordering to a feasibility-scarcity driven greedy approach. Customers with fewer valid insertion slots are prioritized to ensure hard constraints are met, with ties broken stochastically.}
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    working_routes = clone_routes(routes)
+    pending = list(removed)
+    
+    while pending:
+        # Evaluate priority for each pending customer based on feasibility scarcity
+        scores = []
+        for cust in pending:
+            cand = insertion_candidates(problem, working_routes, cust)
+            count = len(cand)
+            # If no feasible insertion exists, push to the very end of priority
+            p_count = count if count > 0 else float('inf')
+            best_cost = cand[0][0] if count > 0 else float('inf')
+            # Add small random jitter for tie-breaking to maintain diversity
+            jitter = rng.random()
+            scores.append((p_count, best_cost, jitter, cust))
+        
+        # Sort by scarcity (ascending), then cost (ascending), then jitter
+        scores.sort(key=lambda x: (x[0], x[1], x[2]))
+        
+        # Select the most constrained customer
+        selected_cust = scores[0][3]
+        
+        # Remove from pending list
+        try:
+            idx = pending.index(selected_cust)
+            pending.pop(idx)
+        except ValueError:
+            # Should not happen given logic
+            continue
+        
+        # Insert at the best available position
+        cand = insertion_candidates(problem, working_routes, selected_cust)
+        if cand:
+            apply_insertion(working_routes, selected_cust, cand[0])
+            
+    return working_routes
+```

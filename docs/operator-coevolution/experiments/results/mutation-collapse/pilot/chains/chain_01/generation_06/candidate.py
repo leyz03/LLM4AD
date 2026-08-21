@@ -1,0 +1,26 @@
+def repair_operator(problem, routes, removed, rng):
+    working_routes = clone_routes(routes)
+    pending = list(removed)
+    while pending:
+        scores = []
+        for cust in pending:
+            cands = insertion_candidates(problem, working_routes, cust)
+            if not cands:
+                scores.append((float('inf'), cust))
+                continue
+            best_cost = cands[0][0]
+            if len(cands) > 1:
+                second_best_cost = cands[1][0]
+                regret = second_best_cost - best_cost
+            else:
+                regret = float('inf')
+            scores.append((regret, cust))
+        scores.sort(key=lambda x: x[0], reverse=True)
+        k = min(2, len(scores))
+        idx = rng.integers(0, k)
+        target_cust = scores[idx][1]
+        pending.remove(target_cust)
+        cands = insertion_candidates(problem, working_routes, target_cust)
+        if cands:
+            apply_insertion(working_routes, target_cust, cands[0])
+    return working_routes

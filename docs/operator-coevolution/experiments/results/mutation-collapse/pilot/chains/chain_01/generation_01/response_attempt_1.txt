@@ -1,0 +1,65 @@
+{Adaptive regret with stochastic candidate selection: dynamically adjusts regret parameter based on removal size and introduces probability-based selection among top candidates for better exploration}
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    # Create deep copy of routes to avoid mutation
+    new_routes = clone_routes(routes)
+    
+    # Calculate remaining capacity per route for constraint awareness
+    route_slack = []
+    for r_idx, route in enumerate(new_routes):
+        slack = problem.capacity - sum(problem.demand[c] for c in route)
+        route_slack.append(slack)
+    
+    # Adaptive regret value: higher for more removed customers
+    num_removed = len(removed)
+    base_regret = min(max(int(num_removed * 0.5 + 1), 1), 3)
+    regret_values = [base_regret, base_regret + 1]
+    
+    # Sort removed customers by demand (larger first for harder cases)
+    sorted_removed = sorted(removed, 
+                           key=lambda c: problem.demand[c], 
+                           reverse=True)
+    
+    for customer in sorted_removed:
+        # Get insertion candidates for this customer across all routes
+        candidates = insertion_candidates(problem, new_routes, customer)
+        
+        if not candidates:
+            continue
+        
+        # Select from top candidates using regret + stochastic element
+        top_k = min(len(candidates), max(regret_values))
+        top_candidates = candidates[:top_k]
+        
+        # Regret calculation: cost difference between best and worse options
+        regrets = []
+        for i in range(min(top_k, len(top_candidates))):
+            delta = top_candidates[i][0]
+            regrets.append((i, delta))
+        
+        # Sort by regret value (difference between first and worst option)
+        if len(top_candidates) >= 2:
+            best_cost = top_candidates[0][0]
+            worst_cost = top_candidates[-1][0]
+            regret_score = worst_cost - best_cost
+            
+            # Stochastic selection: prefer lower regret but add noise
+            selection_probs = [1.0 / (1.0 + abs(r[0] - top_k//2)) 
+                             for r in range(len(top_candidates))]
+            
+            # Normalize probabilities
+            total_prob = sum(selection_probs)
+            selection_probs = [p / total_prob for p in selection_probs]
+            
+            # Sample from top candidates
+            idx_in_top = rng.choice(len(top_candidates), p=selection_probs)
+            selected_candidate = top_candidates[idx_in_top]
+        else:
+            selected_candidate = top_candidates[0]
+        
+        # Apply insertion
+        apply_insertion(new_routes, customer, selected_candidate)
+    
+    return new_routes
+```

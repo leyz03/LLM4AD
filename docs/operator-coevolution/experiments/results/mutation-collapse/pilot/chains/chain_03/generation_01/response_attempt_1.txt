@@ -1,0 +1,28 @@
+{Greedy Best Insertion: Shuffles removed customers, iteratively inserts each into the cheapest feasible position in existing routes using feasibility checks; falls back to creating a new single-customer route if no valid insertion exists.}
+
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    
+    # Randomize insertion order to avoid systematic bias
+    for i in rng.permutation(len(removed)):
+        customer = removed[i]
+        
+        # Get potential insertion spots sorted by cost increase
+        candidates = insertion_candidates(problem, result, customer)
+        
+        inserted = False
+        for delta, r_idx, pos in candidates:
+            # Check feasibility by verifying a temporary route modification
+            # We clone the specific route to test insertion impact without affecting result
+            temp_route = result[r_idx][:]
+            temp_route.insert(pos, customer)
+            if route_feasible(problem, temp_route):
+                apply_insertion(result, customer, (delta, r_idx, pos))
+                inserted = True
+                break
+        
+        # Fallback: if no feasible spot found in existing routes, start a new route
+        if not inserted:
+            result.append([customer])
+            
+    return result

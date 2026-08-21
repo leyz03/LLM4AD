@@ -1,0 +1,163 @@
+{
+  "n_operators": 13,
+  "operator_names": [
+    "classic:greedy_insertion",
+    "classic:regret_2",
+    "classic:regret_3",
+    "classic:greedy_with_noise",
+    "classic:best_position_first",
+    "classic:sequential_insertion",
+    "control:sequential_rewrite",
+    "specialist:block_reinsert",
+    "specialist:new_route",
+    "qwen:chain_00:g08",
+    "qwen:chain_01:g07",
+    "qwen:chain_02:g08",
+    "qwen:chain_03:g06"
+  ],
+  "ranking": [
+    "probe_output_l2",
+    "performance_footprint_l3",
+    "llm_direct_l1plus",
+    "llm_descriptor_tfidf_l1proxy",
+    "ast_l0",
+    "token_l0"
+  ],
+  "llm": {
+    "status": "ok",
+    "model": "qwen3.5-flash",
+    "successful_repeats": 3,
+    "requested_repeats": 3,
+    "direct_judgment_repeat_reliability": 0.20340313209054786,
+    "errors": [],
+    "descriptors": {
+      "classic:greedy_insertion": [
+        "Randomized sequential greedy insertion",
+        "Randomized greedy: shuffles removal order, then inserts greedily.",
+        "Randomized order sequential greedy"
+      ],
+      "classic:regret_2": [
+        "Regret-based selection (k=2)",
+        "Regret heuristic: prioritizes customers with high regret (k=2) before insertion.",
+        "Regret-k=2 heuristic ordering"
+      ],
+      "classic:regret_3": [
+        "Regret-based selection (k=3)",
+        "Regret heuristic: prioritizes customers with high regret (k=3) before insertion.",
+        "Regret-k=3 heuristic ordering"
+      ],
+      "classic:greedy_with_noise": [
+        "Global pool selection with additive noise",
+        "Noisy greedy: selects customer with globally minimal noisy insertion cost.",
+        "Cost-noise perturbed global greedy"
+      ],
+      "classic:best_position_first": [
+        "Sequential fixed-order greedy with tie-breaking",
+        "Dynamic greedy: selects pending customer with globally minimal insertion cost.",
+        "Absolute cost global greedy"
+      ],
+      "classic:sequential_insertion": [
+        "Sequential fixed-order first-fit insertion",
+        "Static greedy: inserts removed customers in fixed order using best position.",
+        "Deterministic sequential greedy"
+      ],
+      "control:sequential_rewrite": [
+        "Sequential fixed-order greedy insertion (min cost)",
+        "Static greedy rewrite: identical to static greedy, explicit index iteration.",
+        "Deterministic sequential greedy"
+      ],
+      "specialist:block_reinsert": [
+        "Block reinsertion specialist with fallback",
+        "Block reinsertion: attempts to insert removed block as unit into existing route.",
+        "Block reinsertion preserving relative order"
+      ],
+      "specialist:new_route": [
+        "Naive new-route creation",
+        "New route creation: places each removed customer into a dedicated new route.",
+        "New route creation fallback"
+      ],
+      "qwen:chain_00:g08": [
+        "Global pool selection with softmax weighting",
+        "Softmax pool selection: samples insertion candidates from global pool using cost-weighted probabilities.",
+        "Global weighted probabilistic insertion pool"
+      ],
+      "qwen:chain_01:g07": [
+        "Feasibility-count sorted greedy with randomized tie-breaking",
+        "Difficulty-sorted greedy: sorts by candidate count, breaks ties by cost, random pick among ties.",
+        "Feasibility-priority iterative greedy with tie-breaking"
+      ],
+      "qwen:chain_02:g08": [
+        "Probabilistic regret-based selection",
+        "Probabilistic regret: selects customer based on regret-value weighted probabilities.",
+        "Regret-weighted probabilistic customer selection"
+      ],
+      "qwen:chain_03:g06": [
+        "Difficulty-sorted greedy with epsilon-randomization",
+        "Difficulty-sorted probabilistic: sorts by feasibility count, probabilistic insertion selection.",
+        "Difficulty-sorted stochastic greedy"
+      ]
+    }
+  },
+  "heldout_target_reliability": {
+    "output_behavior": 0.9810349517679253,
+    "performance_footprint": 0.8989913681527966
+  },
+  "false_diversity_examples": [
+    {
+      "left": "control:sequential_rewrite",
+      "right": "specialist:block_reinsert",
+      "token_l0": 0.7948717948717949,
+      "ast_l0": 0.8603351955307262,
+      "probe_output_l2": 0.0,
+      "heldout_output": 0.008208955223880595,
+      "heldout_performance": 0.009849906191369495
+    },
+    {
+      "left": "classic:sequential_insertion",
+      "right": "specialist:block_reinsert",
+      "token_l0": 0.7384615384615385,
+      "ast_l0": 0.785234899328859,
+      "probe_output_l2": 0.0,
+      "heldout_output": 0.008208955223880595,
+      "heldout_performance": 0.009849906191369495
+    },
+    {
+      "left": "classic:sequential_insertion",
+      "right": "control:sequential_rewrite",
+      "token_l0": 0.704225352112676,
+      "ast_l0": 0.7721518987341772,
+      "probe_output_l2": 0.0,
+      "heldout_output": 0.0,
+      "heldout_performance": 0.0
+    },
+    {
+      "left": "classic:regret_2",
+      "right": "qwen:chain_02:g08",
+      "token_l0": 0.9512195121951219,
+      "ast_l0": 0.9611650485436893,
+      "probe_output_l2": 0.1801678990419971,
+      "heldout_output": 0.1923730673558098,
+      "heldout_performance": 0.04887429643527197
+    },
+    {
+      "left": "classic:regret_3",
+      "right": "qwen:chain_02:g08",
+      "token_l0": 0.9512195121951219,
+      "ast_l0": 0.9611650485436893,
+      "probe_output_l2": 0.205422007967511,
+      "heldout_output": 0.21318561293329416,
+      "heldout_performance": 0.09784240150093804
+    }
+  ],
+  "hidden_diversity_examples": [
+    {
+      "left": "classic:regret_2",
+      "right": "classic:regret_3",
+      "token_l0": 0.0,
+      "ast_l0": 0.0,
+      "probe_output_l2": 0.13655676117047394,
+      "heldout_output": 0.1895922381387948,
+      "heldout_performance": 0.0576923076923076
+    }
+  ]
+}

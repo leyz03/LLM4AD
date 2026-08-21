@@ -1,0 +1,38 @@
+{
+Calculates regret scores based on insertion costs, selects customers to reinsert via weighted stochastic sampling instead of greedy ranking, and chooses insertion positions randomly from the top-K candidates rather than strictly the optimal one.
+}
+def repair_operator(problem, routes, removed, rng):
+    working_routes = clone_routes(routes)
+    pending = list(removed)
+    
+    while pending:
+        regrets = []
+        for cust in pending:
+            cand = insertion_candidates(problem, working_routes, cust)
+            if len(cand) < 2:
+                r = 0.0
+            else:
+                r = cand[1][0] - cand[0][0]
+            regrets.append(r)
+        
+        # Ensure weights are positive for probability distribution
+        weights = [max(r, 0.01) for r in regrets]
+        total_w = sum(weights)
+        probs = [w / total_w for w in weights]
+        
+        # Stochastic selection of customer to insert (Change from deterministic argmax)
+        idx = rng.choice(len(pending), p=probs)
+        cust = pending[idx]
+        pending.pop(idx)
+        
+        # Retrieve candidates for the selected customer
+        cand = insertion_candidates(problem, working_routes, cust)
+        
+        # Select insertion position from top K candidates (Change from greedy 1-best to K-best random)
+        K = min(3, len(cand))
+        spot_idx = rng.integers(0, K)
+        insertion_point = cand[spot_idx]
+        
+        apply_insertion(working_routes, cust, insertion_point)
+        
+    return working_routes

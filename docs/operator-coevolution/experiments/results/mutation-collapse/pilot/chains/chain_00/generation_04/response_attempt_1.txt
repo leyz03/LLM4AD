@@ -1,0 +1,54 @@
+{Switch from deterministic maximum-regret selection to probabilistic selection weighted by regret scores. This introduces stochasticity in the insertion order, reducing sensitivity to the initial removal set while preserving the preference for hard-to-insert customers.}
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    remaining = list(removed)
+    while remaining:
+        regrets = []
+        valid_indices = []
+        
+        # Evaluate all remaining customers for regret score
+        for i, cust in enumerate(remaining):
+            cands = insertion_candidates(problem, result, cust)
+            if not cands:
+                continue
+            
+            if len(cands) >= 2:
+                reg = cands[1][0] - cands[0][0]
+            else:
+                reg = float('inf')
+            
+            regrets.append(reg)
+            valid_indices.append(i)
+        
+        if not valid_indices:
+            break
+        
+        # Select customer based on regret probability distribution
+        # Prioritize customers with infinite regret (infeasible elsewhere)
+        inf_indices = [idx for idx, reg in zip(valid_indices, regrets) if reg == float('inf')]
+        
+        if inf_indices:
+            # Uniform random selection among hardest-to-place candidates
+            local_idx = rng.choice(len(inf_indices))
+            selected_remaining_idx = inf_indices[local_idx]
+        else:
+            # Weighted random selection based on regret magnitude
+            total_regret = sum(regrets)
+            if total_regret == 0:
+                probs = [1.0 / len(regrets)] * len(regrets)
+            else:
+                probs = [r / total_regret for r in regrets]
+            
+            local_idx = rng.choice(len(regrets), p=probs)
+            selected_remaining_idx = valid_indices[local_idx]
+        
+        # Insert the selected customer
+        customer = remaining.pop(selected_remaining_idx)
+        cands = insertion_candidates(problem, result, customer)
+        if cands:
+            apply_insertion(result, customer, cands[0])
+            
+    return result
+```

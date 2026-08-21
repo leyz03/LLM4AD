@@ -1,0 +1,72 @@
+We are evolving a repair operator for CVRP and VRPTW large-neighborhood search.
+The operator receives a feasible partial solution and the removed customers, and must return a
+complete feasible solution. Improve the parent while changing its algorithmic mechanism, not just
+renaming variables or tuning a numeric constant.
+
+You may use only these existing helpers (do not import anything):
+- clone_routes(routes) -> deep copy of the route list
+- insertion_candidates(problem, routes, customer) -> sorted (delta, route_index, position) tuples
+- apply_insertion(routes, customer, candidate) -> mutates routes with one insertion
+- route_feasible(problem, route) -> bool
+- route_distance(problem, route) -> float
+- solution_distance(problem, routes) -> float
+- np and the supplied rng (numpy Generator)
+
+Contract:
+def repair_operator(problem, routes, removed, rng):
+    # do not mutate routes or removed; return list[list[int]]
+
+Return one short algorithm description inside braces, followed by exactly one complete Python
+function named repair_operator. Do not emit imports, classes, files, network calls, global state,
+or additional helper functions.
+
+This is mutation chain 2, generation 6. The chain started from the
+'block_reinsert' repair. Here is the current parent:
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    if not removed:
+        return result
+    customer_priorities = []
+    for cust in removed:
+        cands = insertion_candidates(problem, result, cust)
+        feasible_costs = []
+        check_count = 0
+        for delta, r_idx, pos in cands:
+            if check_count >= 2:
+                break
+            current_route = result[r_idx]
+            if 0 <= pos <= len(current_route):
+                temp_route = current_route[:pos] + [cust] + current_route[pos:]
+                if route_feasible(problem, temp_route):
+                    feasible_costs.append(delta)
+            check_count += 1
+        if len(feasible_costs) == 0:
+            regret = float('inf')
+        elif len(feasible_costs) == 1:
+            regret = float('inf')
+        else:
+            regret = feasible_costs[1] - feasible_costs[0]
+        customer_priorities.append((regret, cust))
+    customer_priorities.sort(key=lambda x: x[0], reverse=True)
+    work_order = [item[1] for item in customer_priorities]
+    for cust in work_order:
+        cands = insertion_candidates(problem, result, cust)
+        best_candidate = None
+        for delta, r_idx, pos in cands:
+            current_route = result[r_idx]
+            if 0 <= pos <= len(current_route):
+                temp_route = current_route[:pos] + [cust] + current_route[pos:]
+                if route_feasible(problem, temp_route):
+                    best_candidate = (delta, r_idx, pos)
+                    break
+        if best_candidate:
+            apply_insertion(result, cust, best_candidate)
+        elif cands:
+            apply_insertion(result, cust, cands[0])
+    return result
+```
+
+Create exactly one modified child. The experiment will accept every valid child regardless of
+fitness, so do not discuss selection or compare multiple alternatives.

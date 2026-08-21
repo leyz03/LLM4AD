@@ -1,0 +1,69 @@
+{
+  "mode": "llm",
+  "decision": "INSUFFICIENT_FOR_SCIENTIFIC_DECISION",
+  "preregistered_rule": {
+    "minimum_design": "at least 3 chains, 4 generations, and validation initial effective dimension >= 2",
+    "strong_evidence": "effective dimension drop >=20% on calibration and validation, and late revisit rate >=50%"
+  },
+  "n_attempted_generations": 32,
+  "n_valid_children": 19,
+  "invalid_rate": 0.40625,
+  "behavior_noise_95_validation": 0.3818316133367427,
+  "late_behavior_revisit_rate": 0.8181818181818182,
+  "effective_dimension": {
+    "calibration": [
+      1.5023425596586217,
+      1.6204565915738534,
+      1.7903390896645517,
+      1.8544570115578085,
+      1.8215953365873572,
+      1.7872717982901014,
+      1.7699144597674725,
+      1.7716519877555836,
+      1.8015172929671426
+    ],
+    "validation": [
+      1.6782214686168333,
+      1.6477601070268473,
+      1.7905503983017208,
+      1.894347887031388,
+      1.8315962009389997,
+      1.8107471258806556,
+      1.812266244541176,
+      1.793755074058099,
+      1.7819340775037114
+    ]
+  },
+  "effective_dimension_drop": {
+    "calibration": -0.19913882581912778,
+    "validation": -0.06179911938104121
+  },
+  "sensitivity_noise_adjusted": {
+    "note": "exploratory, not the preregistered decision statistic",
+    "late_behavior_revisit_rate": 0.8181818181818182,
+    "effective_dimension": {
+      "calibration": [
+        1.5023425596586217,
+        1.704764802891407,
+        1.6131002419106333,
+        1.7006471940780332,
+        1.6398056765691729,
+        1.4593194922711232,
+        1.6296909381435638,
+        1.5639914023158656,
+        1.3622692297534011
+      ],
+      "validation": [
+        1.6782214686168333,
+        1.5653341952570674,
+        1.204212855755126,
+        1.6179267166419598,
+        1.5843724836139126,
+        1.4360365675093194,
+        1.6445076120074698,
+        2.1137811998838933,
+        1.7477507983829415
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "chain": 3,
+  "generation": 6,
+  "seed": "new_route",
+  "status": "valid",
+  "attempts": 0,
+  "error": "",
+  "l0_parent": 0.6462264150943396,
+  "l0_ancestor": 0.8662420382165605,
+  "l2_parent_calibration": 0.39162073685468324,
+  "l2_parent_validation": 0.3864335430137236,
+  "l2_ancestor_calibration": 0.3447287862707755,
+  "l2_ancestor_validation": 0.3367902184813154,
+  "l2_nearest_history_calibration": 0.3447287862707755,
+  "l2_nearest_history_validation": 0.3367902184813154,
+  "l2_nearest_history_calibration_adjusted": 0.0,
+  "l2_nearest_history_validation_adjusted": 0.0,
+  "self_noise_calibration": 0.36819629134909365,
+  "self_noise_validation": 0.3590877900350643,
+  "mean_gain_calibration": -2.0195174578321073,
+  "mean_gain_validation": -1.3035544784951612,
+  "behavior_revisit": ""
+}

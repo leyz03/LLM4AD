@@ -1,0 +1,121 @@
+{
+  "n_operators": 9,
+  "operator_names": [
+    "classic:greedy_insertion",
+    "classic:regret_2",
+    "classic:regret_3",
+    "classic:greedy_with_noise",
+    "classic:best_position_first",
+    "classic:sequential_insertion",
+    "control:sequential_rewrite",
+    "specialist:block_reinsert",
+    "specialist:new_route"
+  ],
+  "ranking": [
+    "probe_output_l2",
+    "performance_footprint_l3",
+    "token_l0",
+    "ast_l0"
+  ],
+  "llm": {
+    "status": "skipped"
+  },
+  "heldout_target_reliability": {
+    "output_behavior": 0.982921958604912,
+    "performance_footprint": 0.9002007266462012
+  },
+  "false_diversity_examples": [
+    {
+      "left": "control:sequential_rewrite",
+      "right": "specialist:block_reinsert",
+      "token_l0": 0.7948717948717949,
+      "ast_l0": 0.8603351955307262,
+      "probe_output_l2": 0.0,
+      "heldout_output": 0.02564102564102564,
+      "heldout_performance": 0.06060606060606061
+    },
+    {
+      "left": "classic:sequential_insertion",
+      "right": "control:sequential_rewrite",
+      "token_l0": 0.704225352112676,
+      "ast_l0": 0.7721518987341772,
+      "probe_output_l2": 0.0,
+      "heldout_output": 0.0,
+      "heldout_performance": 5.551115123125783e-17
+    },
+    {
+      "left": "classic:sequential_insertion",
+      "right": "specialist:block_reinsert",
+      "token_l0": 0.7384615384615385,
+      "ast_l0": 0.785234899328859,
+      "probe_output_l2": 0.0,
+      "heldout_output": 0.02564102564102564,
+      "heldout_performance": 0.06060606060606061
+    },
+    {
+      "left": "classic:regret_2",
+      "right": "classic:best_position_first",
+      "token_l0": 0.8947368421052632,
+      "ast_l0": 0.9230769230769231,
+      "probe_output_l2": 0.13300455641919057,
+      "heldout_output": 0.17483183483183484,
+      "heldout_performance": 0.13333333333333341
+    },
+    {
+      "left": "classic:greedy_insertion",
+      "right": "classic:best_position_first",
+      "token_l0": 0.7763157894736842,
+      "ast_l0": 0.8969072164948454,
+      "probe_output_l2": 0.18696348367080073,
+      "heldout_output": 0.15557400680389782,
+      "heldout_performance": 0.054545454545454564
+    }
+  ],
+  "hidden_diversity_examples": [
+    {
+      "left": "classic:regret_2",
+      "right": "classic:regret_3",
+      "token_l0": 0.0,
+      "ast_l0": 0.0,
+      "probe_output_l2": 0.20867504569128723,
+      "heldout_output": 0.016239316239316248,
+      "heldout_performance": 5.551115123125783e-17
+    },
+    {
+      "left": "classic:sequential_insertion",
+      "right": "specialist:new_route",
+      "token_l0": 0.5333333333333333,
+      "ast_l0": 0.4222222222222223,
+      "probe_output_l2": 0.3266384241476106,
+      "heldout_output": 0.35216181314066564,
+      "heldout_performance": 0.6787878787878787
+    },
+    {
+      "left": "classic:greedy_insertion",
+      "right": "specialist:new_route",
+      "token_l0": 0.7555555555555555,
+      "ast_l0": 0.8085106382978724,
+      "probe_output_l2": 0.3365313620097955,
+      "heldout_output": 0.36751541890953077,
+      "heldout_performance": 0.5878787878787879
+    },
+    {
+      "left": "classic:best_position_first",
+      "right": "specialist:new_route",
+      "token_l0": 0.7375,
+      "ast_l0": 0.8217821782178218,
+      "probe_output_l2": 0.3307190979957263,
+      "heldout_output": 0.36067796973056054,
+      "heldout_performance": 0.5212121212121212
+    },
+    {
+      "left": "specialist:block_reinsert",
+      "right": "specialist:new_route",
+      "token_l0": 0.8175182481751825,
+      "ast_l0": 0.8211920529801324,
+      "probe_output_l2": 0.3266384241476106,
+      "heldout_output": 0.35216181314066564,
+      "heldout_performance": 0.593939393939394
+    }
+  ]
+}

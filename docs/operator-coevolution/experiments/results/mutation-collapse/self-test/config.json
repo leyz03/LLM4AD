@@ -1,0 +1,20 @@
+{
+  "chains": 2,
+  "generations": 2,
+  "probe_instances": 2,
+  "probe_repeats": 1,
+  "customers": 30,
+  "remove_fraction": 0.2,
+  "seed": 20260821,
+  "output": "D:\\Study\\LLM4AD\\docs\\operator-coevolution\\experiments\\results\\mutation-collapse\\self-test",
+  "base_url": null,
+  "model": null,
+  "env_file": ".env",
+  "temperature": 0.8,
+  "max_tokens": 1400,
+  "api_timeout": 120.0,
+  "evaluation_timeout": 25.0,
+  "attempts_per_generation": 1,
+  "resume": false,
+  "self_test": true
+}

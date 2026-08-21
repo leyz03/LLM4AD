@@ -1,0 +1,16 @@
+{Sort removed customers by time window tightness (earliest deadline first) before sequential insertion}
+```python
+def repair_operator(problem, routes, removed, rng):
+    del rng
+    result = clone_routes(routes)
+    
+    # Sort by time window constraint severity - earliest l_i first
+    sorted_removed = sorted(removed, key=lambda c: problem.l[c])
+    
+    for customer in sorted_removed:
+        candidates = insertion_candidates(problem, result, customer)
+        if candidates:
+            apply_insertion(result, customer, candidates[0])
+    
+    return result
+```

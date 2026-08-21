@@ -1,0 +1,51 @@
+{Regret-based repair with stochastic tie-breaking}
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    remaining = list(removed)
+    
+    while remaining:
+        best_idx = -1
+        max_regret = -1.0
+        selected_cands = None
+        
+        for i, customer in enumerate(remaining):
+            cands = insertion_candidates(problem, result, customer)
+            if not cands:
+                continue
+            
+            # Regret = cost of 2nd best - cost of best
+            # If only 1 option, regret is infinite (high urgency)
+            if len(cands) >= 2:
+                regret = cands[1][0] - cands[0][0]
+            else:
+                regret = float('inf')
+            
+            # Determine if this customer has higher priority than current best
+            # Priority is defined by regret magnitude, with random tie-breaking
+            is_better = False
+            if regret > max_regret:
+                is_better = True
+            elif regret == float('inf') and max_regret == float('inf'):
+                # Both urgent, pick randomly to avoid bias
+                if rng.random() < 0.5:
+                    is_better = True
+            elif abs(regret - max_regret) < 1e-9:
+                # Nearly equal, pick randomly for exploration
+                if rng.random() < 0.5:
+                    is_better = True
+            
+            if is_better:
+                max_regret = regret
+                best_idx = i
+                selected_cands = cands
+        
+        if selected_cands:
+            # Remove chosen customer from remaining list (local copy)
+            customer = remaining.pop(best_idx)
+            # Insert at the best candidate location found
+            apply_insertion(result, customer, selected_cands[0])
+        else:
+            # Fallback to avoid infinite loop if no candidates found
+            break
+            
+    return result

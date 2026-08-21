@@ -1,0 +1,21 @@
+{
+  "chains": 4,
+  "generations": 8,
+  "probe_instances": 4,
+  "probe_repeats": 2,
+  "customers": 50,
+  "remove_fraction": 0.2,
+  "seed": 20260821,
+  "output": "D:\\Study\\LLM4AD\\docs\\operator-coevolution\\experiments\\results\\mutation-collapse\\pilot",
+  "base_url": null,
+  "model": null,
+  "env_file": ".env",
+  "temperature": 0.8,
+  "max_tokens": 1400,
+  "api_timeout": 120.0,
+  "evaluation_timeout": 25.0,
+  "attempts_per_generation": 1,
+  "resume": true,
+  "self_test": false,
+  "resolved_model": "qwen3.5-flash"
+}

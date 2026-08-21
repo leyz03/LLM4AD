@@ -1,0 +1,23 @@
+{
+  "chain": 1,
+  "generation": 6,
+  "seed": "regret_2",
+  "status": "valid",
+  "attempts": 0,
+  "error": "",
+  "l0_parent": 0.5460526315789473,
+  "l0_ancestor": 0.948905109489051,
+  "l2_parent_calibration": 0.22245640240754277,
+  "l2_parent_validation": 0.21465647680932345,
+  "l2_ancestor_calibration": 0.17473151762345873,
+  "l2_ancestor_validation": 0.1656009645201815,
+  "l2_nearest_history_calibration": 0.17473151762345873,
+  "l2_nearest_history_validation": 0.1656009645201815,
+  "l2_nearest_history_calibration_adjusted": 0.0,
+  "l2_nearest_history_validation_adjusted": 0.0,
+  "self_noise_calibration": 0.1843265201937065,
+  "self_noise_validation": 0.17076632167196074,
+  "mean_gain_calibration": 4.3061155999215694,
+  "mean_gain_validation": 5.37346123374584,
+  "behavior_revisit": ""
+}

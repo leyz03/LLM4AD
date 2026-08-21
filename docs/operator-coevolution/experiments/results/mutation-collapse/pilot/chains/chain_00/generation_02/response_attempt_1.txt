@@ -1,0 +1,34 @@
+{Difficulty-aware scheduling with stochastic top-k selection}
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    
+    # Compute best insertion delta for each removed customer
+    scored_customers = []
+    for customer in removed:
+        candidates = insertion_candidates(problem, result, customer)
+        if candidates:
+            best_delta = candidates[0][0]
+            top_k = min(len(candidates), 4)
+            scored_customers.append((customer, best_delta, candidates[:top_k]))
+        else:
+            scored_customers.append((customer, float('inf'), []))
+    
+    # Sort by difficulty: hardest to insert first (largest best delta)
+    scored_customers.sort(key=lambda x: x[1], reverse=True)
+    
+    # Insert in difficulty order using stochastic selection among top-k
+    for customer, _, candidates in scored_customers:
+        if not candidates:
+            continue
+        
+        # Weighted selection: lower delta = higher probability
+        deltas = [c[0] for c in candidates]
+        weights = np.array([1.0 / max(1e-9, d) for d in deltas])
+        weights /= weights.sum()
+        
+        idx = rng.choice(len(candidates), p=weights)
+        apply_insertion(result, customer, candidates[idx])
+    
+    return result
+```

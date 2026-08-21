@@ -1,0 +1,58 @@
+{Dynamic Regret Evaluation: Recalculate regret scores for remaining customers at each insertion step to account for evolving route constraints, ensuring priority adapts to the current partial solution state.}
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+    if not removed:
+        return result
+    active_removed = list(removed)
+    
+    while active_removed:
+        # Dynamic Regret Calculation
+        regrets = []
+        for idx, cust in enumerate(active_removed):
+            cands = insertion_candidates(problem, result, cust)
+            feasible_costs = []
+            for delta, r_idx, pos in cands:
+                if 0 <= pos <= len(result[r_idx]):
+                    temp_route = result[r_idx][:pos] + [cust] + result[r_idx][pos:]
+                    if route_feasible(problem, temp_route):
+                        feasible_costs.append(delta)
+                if len(feasible_costs) >= 2:
+                    break
+            
+            if len(feasible_costs) < 2:
+                regrets.append(float('inf'))
+            else:
+                regrets.append(feasible_costs[1] - feasible_costs[0])
+        
+        # Probability Distribution based on current regrets
+        weights = [r if not np.isinf(r) else 1e100 for r in regrets]
+        total_weight = sum(weights)
+        
+        if total_weight == 0:
+            probs = [1.0 / len(active_removed)] * len(active_removed)
+        else:
+            probs = [w / total_weight for w in weights]
+            
+        # Select customer
+        chosen_idx = rng.choice(len(active_removed), p=probs)
+        cust = active_removed.pop(chosen_idx)
+        
+        # Insert customer
+        cands = insertion_candidates(problem, result, cust)
+        best_candidate = None
+        for delta, r_idx, pos in cands:
+            if 0 <= pos <= len(result[r_idx]):
+                temp_route = result[r_idx][:pos] + [cust] + result[r_idx][pos:]
+                if route_feasible(problem, temp_route):
+                    best_candidate = (delta, r_idx, pos)
+                    break
+        
+        if best_candidate:
+            apply_insertion(result, cust, best_candidate)
+        elif cands:
+            apply_insertion(result, cust, cands[0])
+            
+    return result
+```

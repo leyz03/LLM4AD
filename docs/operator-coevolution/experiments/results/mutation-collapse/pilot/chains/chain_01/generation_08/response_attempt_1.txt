@@ -1,0 +1,44 @@
+{switching from regret-based count evaluation to constraint-aware cost scoring with time-window slack prioritization}
+
+```python
+def repair_operator(problem, routes, removed, rng):
+    working_routes = clone_routes(routes)
+    pending = list(removed)
+    while pending:
+        scores = []
+        for cust in pending:
+            cands = insertion_candidates(problem, working_routes, cust)
+            if not cands:
+                scores.append((float('inf'), cust))
+            else:
+                best_delta = cands[0][0]
+                route_idx = cands[0][1]
+                pos = cands[0][2]
+                test_route = [working_routes[route_idx][:pos], 
+                              [cust], 
+                              working_routes[route_idx][pos:]]
+                # Calculate time window slack penalty
+                tw_penalty = 0.0
+                for i, node in enumerate(test_route[0]):
+                    if node > 0:
+                        dist = problem.distances[node - 1][-1]
+                        arrival = problem.departure_time + dist
+                        slack = max(0, problem.time_windows[node - 1][1] - arrival)
+                        tw_penalty += slack
+                final_score = best_delta + tw_penalty * 0.01
+                scores.append((final_score, cust))
+        
+        min_score = min(s[0] for s in scores)
+        best_customers = [c[1] for c in scores if c[0] == min_score]
+        
+        k = max(1, int(rng.exponential(2) + 1))
+        n_select = min(len(best_customers), k)
+        selected_cust = rng.choice(best_customers, size=n_select, replace=False)[0]
+        
+        pending.remove(selected_cust)
+        cands = insertion_candidates(problem, working_routes, selected_cust)
+        if cands:
+            apply_insertion(working_routes, selected_cust, cands[0])
+    
+    return working_routes
+```

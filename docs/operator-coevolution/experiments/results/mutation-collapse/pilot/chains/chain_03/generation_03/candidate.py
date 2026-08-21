@@ -1,0 +1,29 @@
+def repair_operator(problem, routes, removed, rng):
+    result = clone_routes(routes)
+
+    def get_customer_center(customer):
+        loc = problem.customer_locations[customer]
+        return (loc.x, loc.y)
+    center_positions = {c: get_customer_center(c) for c in removed}
+    if len(removed) >= 2:
+        first_customer = removed[0]
+        first_center = center_positions[first_customer]
+        distances = [(c, abs(center_positions[c][0] - first_center[0]) + abs(center_positions[c][1] - first_center[1])) for c in removed]
+        distances.sort(key=lambda x: x[1])
+        split_point = max(1, len(removed) // 2)
+        left_side = [d[0] for d in distances[:split_point]]
+        right_side = [d[0] for d in distances[split_point:]]
+        ordered_removed = left_side + right_side
+    else:
+        ordered_removed = removed[:]
+    for customer in ordered_removed:
+        candidates = insertion_candidates(problem, result, customer)
+        feasible_candidates = [(d, r_idx, pos) for d, r_idx, pos in candidates if route_feasible(problem, result[r_idx][:])]
+        if feasible_candidates:
+            best_delta = min((d for d, _, _ in feasible_candidates))
+            best_options = [(r_idx, pos) for d, r_idx, pos in feasible_candidates if d == best_delta]
+            chosen_route, chosen_pos = rng.choice(best_options)
+            apply_insertion(result, customer, (best_delta, chosen_route, chosen_pos))
+        else:
+            result.append([customer])
+    return result
