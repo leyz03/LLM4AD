@@ -1,5 +1,13 @@
 # 在 LLM4AD 上做算子协同进化：落地实施方案
 
+> **状态：部分被取代（2026-08-21）。**
+>
+> 本文的 **Stage 0 结论（§0）、LLM4AD 架构约束（§1）、测试床选择（§2）和三个坑（§6）仍然有效**，是后续工作的共同前提。
+>
+> 但 **§3 的 Stage 1–5 路线与 §4 的时间线已被取代**：Stage 0.5 测得 γ 可排除在 5% 以上，且复核发现 repair 算子有效自由度仅 1.29/6，原以 γ 为核心的路线不再是主线。当前主线为「LLM 变异退化为相似」，设计基线见[行为感知的组合库协同进化](./behavior-aware-portfolio-coevolution.md)，最新结果与下一步见[实验结果汇总](./experiments/RESULTS.md)。
+>
+> 本文保留原貌，不回改，以便对照当初的预注册门槛与实际结果。
+
 配套材料：[跨领域调研](./literature-review.md)、[Stage 0 验证脚本](./experiments/stage0_credit_estimator_validation.py)与[实验结果](./experiments/results/)。
 
 ---
@@ -199,9 +207,16 @@ repair:  greedy_insertion, regret_2, regret_3,
 | CVRP | **0.9%** | [0.7%, 2.5%] | 0.614 | 弱 |
 | VRPTW | **3.0%** | [2.3%, 7.4%] | 0.104 | 弱 |
 
-10%、20%、30% 三个移除比例的 γ 点估计均低于 10%，且交互检验均不显著。按本节预先规定的决策门槛，**当前经典算子 + 单步 payoff 上的交互项叙事不成立，VRPTW 也没有表现出实质更高的交互占比。** 下一步不应直接投入 Stage 3 的 γ-UCB；优先转向时序信用分配 / RUDDER，或先在标准 Solomon/CVRPLIB 实例和长轨迹 payoff 上做一次外部有效性复核。
+10%、20%、30% 三个移除比例的 γ 点估计均低于 10%，且交互检验均不显著。按本节预先规定的决策门槛，**当前经典算子 + 单步 payoff 上的交互项叙事不成立，VRPTW 也没有表现出实质更高的交互占比。**
 
-实现见 [`experiments/stage05_gamma_audit.py`](./experiments/stage05_gamma_audit.py)，原始数据、图与完整解释边界见 [`experiments/results/stage05/`](./experiments/results/stage05/)，跨阶段汇总与下一步的候选路径见[实验结果汇总](./experiments/RESULTS.md)。
+> **2026-08-21 后续修正（本小节以下内容以此为准）：**
+>
+> 1. 上表的占比是**上界**。偏差修正后 CVRP 为 0.00%、VRPTW 为 0.84%；六个 (尺度 × 问题) 格中四格的真实交互方差分量为负。
+> 2. 补做功效分析后，正确表述是**主实验可排除 γ > 5%**（功效 ≥ 80%），而非仅"未测到"。敏感性运行功效低得多，不能与主实验并列引用。
+> 3. **这个零结果有一个未修的已知威胁**：六个 repair 算子的有效自由度只有 1.29/6，行为上近似同一个算子。因此结论只适用于"经典通才 repair + 单步 payoff"，**不能外推到专才或 LLM 演化算子**——原文"交互项叙事不成立"的措辞过强。
+> 4. 当时建议的下一步（转向 RUDDER，或做标准实例外部有效性复核）**没有被采纳**。实际选择的主线是「LLM 变异退化为相似」，理由见[第一轮综合报告](./experiments/results/2026-08-21-mutation-diversity-report.md)。
+
+实现见 [`experiments/stage05_gamma_audit.py`](./experiments/stage05_gamma_audit.py)，复核见 [`experiments/stage05_robustness_audit.py`](./experiments/stage05_robustness_audit.py) 与[Stage 0.5 复核与下一步](./stage05-review-and-next-steps.md)，原始数据与图见 [`experiments/results/stage05/`](./experiments/results/stage05/)，跨轮汇总见[实验结果汇总](./experiments/RESULTS.md)。
 
 ---
 

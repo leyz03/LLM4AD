@@ -10,9 +10,9 @@
 | [**行为感知的组合库协同进化**](./behavior-aware-portfolio-coevolution.md) | **当前设计基线：分别给出距离、变异坍缩、信用分配的操作方案，再说明三者如何进入同一协同进化闭环** |
 | [落地实施方案](./implementation-plan.md) | Stage 0 结论、LLM4AD 架构约束、分阶段路线与实验优先级 |
 | [Stage 0.5 复核与下一步](./stage05-review-and-next-steps.md) | 统计复核、算子退化诊断、构念效度问题与预注册规则 |
-| [**实验结果汇总**](./experiments/RESULTS.md) | **Stage 0 与 Stage 0.5 的全部关键数字、结论及其对课题走向的影响** |
+| [**实验结果汇总**](./experiments/RESULTS.md) | **各轮实验的全部关键数字、结论及其对课题走向的影响（先读这个）** |
 | [**第一轮变异/多样性综合报告**](./experiments/results/2026-08-21-mutation-diversity-report.md) | **Qwen 变异链、L0/L1+/L2/L3 度量审计、主线决策与下一实验** |
-| [实验运行说明](./experiments/README.md) | 两个实验的环境、命令与产物说明 |
+| [实验运行说明](./experiments/README.md) | 各实验的环境、命令与产物说明 |
 
 ## 推荐阅读顺序
 
