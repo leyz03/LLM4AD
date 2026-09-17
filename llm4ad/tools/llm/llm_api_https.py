@@ -23,26 +23,85 @@ import http.client
 import json
 import time
 from typing import Any
-import traceback
+from urllib.parse import urlsplit
 from ...base import LLM
 
 
+class HttpsApiFatalError(RuntimeError):
+    """A non-retryable API configuration/authentication error."""
+
+
+class HttpsApiRetryExhaustedError(RuntimeError):
+    """Transient API attempts were exhausted for one logical request."""
+
+
 class HttpsApi(LLM):
-    def __init__(self, host, key, model, timeout=60, **kwargs):
+    def __init__(
+            self,
+            host,
+            key,
+            model,
+            timeout=60,
+            max_retries=3,
+            retry_backoff_seconds=2,
+            **kwargs
+    ):
         """Https API
         Args:
-            host   : host name. please note that the host name does not include 'https://'
+            host   : HTTPS host or OpenAI-compatible base URL. Examples:
+                     api.deepseek.com
+                     https://dashscope.aliyuncs.com/compatible-mode/v1
             key    : API key.
             model  : LLM model name.
             timeout: API timeout.
         """
-        super().__init__(**kwargs)
-        self._host = host
+        # LLM only accepts these two base options.  The remaining kwargs are
+        # generation parameters for the HTTP payload.
+        do_auto_trim = kwargs.pop('do_auto_trim', True)
+        debug_mode = kwargs.pop('debug_mode', False)
+        super().__init__(do_auto_trim=do_auto_trim, debug_mode=debug_mode)
+        endpoint = str(host).strip()
+        if '://' not in endpoint:
+            endpoint = f'https://{endpoint}'
+        parsed_endpoint = urlsplit(endpoint)
+        if parsed_endpoint.scheme != 'https' or not parsed_endpoint.netloc:
+            raise ValueError('HttpsApi endpoint must be a valid HTTPS host or base URL.')
+        if parsed_endpoint.query or parsed_endpoint.fragment:
+            raise ValueError('HttpsApi endpoint must not contain a query or fragment.')
+
+        self._host = parsed_endpoint.netloc
+        base_path = parsed_endpoint.path.rstrip('/')
+        if not base_path:
+            base_path = '/v1'
+        if base_path.endswith('/chat/completions'):
+            self._request_path = base_path
+        else:
+            self._request_path = f'{base_path}/chat/completions'
         self._key = key
         self._model = model
         self._timeout = timeout
+        self._max_retries = max(1, int(max_retries))
+        self._retry_backoff_seconds = max(0, float(retry_backoff_seconds))
         self._kwargs = kwargs
         self._cumulative_error = 0
+        self._request_count = 0
+        self._last_usage = {}
+        self._cumulative_usage = {}
+
+    @property
+    def last_usage(self) -> dict:
+        """Token usage returned by the most recent successful API call."""
+        return dict(self._last_usage)
+
+    @property
+    def cumulative_usage(self) -> dict:
+        """Cumulative numeric usage fields returned by the API."""
+        return dict(self._cumulative_usage)
+
+    @property
+    def request_count(self) -> int:
+        """Number of HTTP requests, including retry attempts."""
+        return self._request_count
 
     def draw_sample(self, prompt: str | Any, *args, **kwargs) -> str:
         """
@@ -98,49 +157,77 @@ class HttpsApi(LLM):
                 # Construct standard text-only message
                 messages = [{'role': 'user', 'content': text_content}]
 
-        # Retry loop for handling network or API transient errors
-        while True:
+        # Retry transient connection/server errors a bounded number of times.
+        for attempt in range(1, self._max_retries + 1):
+            conn = None
             try:
                 conn = http.client.HTTPSConnection(self._host, timeout=self._timeout)
 
                 # Prepare standard OpenAI-compatible payload
-                payload = json.dumps({
+                payload_data = {
                     'max_tokens': self._kwargs.get('max_tokens', 8192),
-                    'top_p': self._kwargs.get('top_p', None),
                     'temperature': self._kwargs.get('temperature', 1.0),
                     'model': self._model,
                     'messages': messages
-                })
+                }
+                if self._kwargs.get('top_p') is not None:
+                    payload_data['top_p'] = self._kwargs['top_p']
+                if 'enable_thinking' in self._kwargs:
+                    payload_data['enable_thinking'] = bool(
+                        self._kwargs['enable_thinking']
+                    )
+                payload = json.dumps(payload_data)
                 headers = {
                     'Authorization': f'Bearer {self._key}',
                     'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
                     'Content-Type': 'application/json'
                 }
-                conn.request('POST', '/v1/chat/completions', payload, headers)
+                self._request_count += 1
+                conn.request('POST', self._request_path, payload, headers)
                 res = conn.getresponse()
-                data = res.read().decode('utf-8')
-                data = json.loads(data)
+                response_text = res.read().decode('utf-8')
+                status = getattr(res, 'status', 200)
+                if not 200 <= status < 300:
+                    safe_response = response_text.replace(str(self._key), '<redacted>')
+                    message = f'HTTP {status}: {safe_response[:500]}'
+                    if 400 <= status < 500 and status not in (408, 429):
+                        raise HttpsApiFatalError(message)
+                    raise RuntimeError(message)
+                data = json.loads(response_text)
 
                 # Extract content from the standard response format
                 response = data['choices'][0]['message']['content']
+                usage = data.get('usage') or {}
+                self._last_usage = usage if isinstance(usage, dict) else {}
+                for name, value in self._last_usage.items():
+                    if isinstance(value, (int, float)):
+                        self._cumulative_usage[name] = self._cumulative_usage.get(name, 0) + value
                 # Reset error counter on success
-                if self.debug_mode:
-                    self._cumulative_error = 0
+                self._cumulative_error = 0
                 return response
 
-            except Exception as e:
+            except HttpsApiFatalError:
                 self._cumulative_error += 1
-
-                # In debug mode, crash after consecutive failures to allow debugging
+                raise
+            except Exception as error:
+                self._cumulative_error += 1
+                if attempt >= self._max_retries:
+                    raise HttpsApiRetryExhaustedError(
+                        f'{self.__class__.__name__} failed after {attempt} attempt(s). '
+                        'Check the API host, model, and service availability.'
+                    ) from error
                 if self.debug_mode:
-                    if self._cumulative_error == 10:
-                        raise RuntimeError(f'{self.__class__.__name__} error: {traceback.format_exc()}.'
-                                           f'You may check your API host and API key.')
-                else:
-                    print(f'{self.__class__.__name__} error: {traceback.format_exc()}.'
-                          f'You may check your API host and API key.')
-                    time.sleep(2)
-                continue
+                    print(
+                        f'{self.__class__.__name__} transient error on attempt '
+                        f'{attempt}/{self._max_retries}: {error}'
+                    )
+                time.sleep(self._retry_backoff_seconds * (2 ** (attempt - 1)))
+            finally:
+                if conn is not None:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
 
     # def draw_sample(self, prompt: str | Any, *args, **kwargs) -> str:
     #     """

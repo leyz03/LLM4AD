@@ -8,7 +8,7 @@ __all__ = []
 package_dir = os.path.dirname(__file__)
 
 # Iterate over all subdirectories in the package directory
-for subdir_name in os.listdir(package_dir):
+for subdir_name in ([] if os.environ.get('LLM4AD_MINIMAL_IMPORTS') == '1' else os.listdir(package_dir)):
     subdir_path = os.path.join(package_dir, subdir_name)
     
     # Check if it is a directory and not a special directory like __pycache__

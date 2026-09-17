@@ -9,7 +9,7 @@ package_dir = os.path.dirname(__file__)
 root_package = __name__
 
 # Recursively walk through the directory to find evaluation.py files
-for dirpath, _, filenames in os.walk(package_dir):
+for dirpath, _, filenames in ([] if os.environ.get('LLM4AD_MINIMAL_IMPORTS') == '1' else os.walk(package_dir)):
     if 'evaluation.py' in filenames:
         # Calculate relative path from package_dir
         rel_path = os.path.relpath(dirpath, package_dir)

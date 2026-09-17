@@ -1,0 +1,11 @@
+# Lightweight Python 3.11 environment; no need to install all optional LLM4AD tasks.
+numpy==2.3.5
+scipy==1.17.1
+scikit-learn==1.9.1
+codebleu==0.7.0
+tree-sitter==0.22.3
+tree-sitter-python==0.23.0
+matplotlib==3.11.2
+pytz==2026.3.post1
+requests==2.34.2
+pytest==9.1.1

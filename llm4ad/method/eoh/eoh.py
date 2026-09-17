@@ -186,6 +186,10 @@ class EoH:
             self._evaluator.evaluate_program_record_time,
             program
         ).result()
+        # Count every program that reached evaluation, even when profiling is
+        # disabled.  Otherwise max_sample_nums never terminates a profiler-free
+        # run and the stated evaluation budget is not meaningful.
+        self._tot_sample_nums += 1
         # register to profiler
         func.score = score
         func.evaluate_time = eval_time
@@ -195,7 +199,6 @@ class EoH:
             self._profiler.register_function(func, program=str(program))
             if isinstance(self._profiler, EoHProfiler):
                 self._profiler.register_population(self._population)
-            self._tot_sample_nums += 1
 
         # register to the population
         self._population.register_function(func)
@@ -281,6 +284,8 @@ class EoH:
                         f'Note: During initialization, EoH gets {len(self._population) + len(self._population._next_gen_pop)} algorithms '
                         f'after {self._initial_sample_nums_max} trails.')
                     break
+            except KeyboardInterrupt:
+                break
             except Exception:
                 if self._debug_mode:
                     traceback.print_exc()

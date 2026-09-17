@@ -1,0 +1,14 @@
+{
+  "protocol_version": 1,
+  "tasks": ["tsp", "cvrp"],
+  "methods": ["hypoevo", "no_memory", "eoh"],
+  "seeds": [2024, 2025, 2026],
+  "max_calls": 30,
+  "population_size": 16,
+  "partitions": 4,
+  "summary_interval": 6,
+  "operators": ["reflection", "summary", "cross"],
+  "task": {"size": 50, "train_instances": 16, "test_instances": 64, "train_seed": 12024, "test_seed": 22024, "capacity": 40, "timeout": 30},
+  "llm": {"temperature": 1.0, "max_tokens": 4096, "timeout": 120, "enable_thinking": false},
+  "worker_timeout": 5400
+}
