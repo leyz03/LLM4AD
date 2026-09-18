@@ -1,0 +1,7 @@
+{
+  "calls_per_run": 28,
+  "planned_runs": 18,
+  "formal_calls_cap": 504,
+  "llm_diagnostic_calls": 0,
+  "scope": "New user-authorized rerun after metadata handling fix; prior pilot excluded"
+}

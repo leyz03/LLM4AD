@@ -1,0 +1,32 @@
+{
+  "excluded_diagnostics": [
+    {
+      "directory": "pilot-real-20260917",
+      "recorded_calls": 7,
+      "calls_upper_bound": 8,
+      "reason": "Stopped to fix response-format handling; excluded from comparison"
+    },
+    {
+      "directory": "pilot-real-v2-20260917",
+      "recorded_calls": 15,
+      "calls_upper_bound": 16,
+      "reason": "Stopped to fix response-format handling; excluded from comparison"
+    }
+  ],
+  "final_calls_per_run": 28,
+  "final_runs": 18,
+  "final_calls_cap": 504,
+  "original_authorized_cap": 540,
+  "combined_calls_upper_bound": 540,
+  "excluded_api_interruption": {
+    "directory": "excluded-api-error-cvrp-hypoevo-2025",
+    "calls": 12,
+    "reason": "API error; full run restarted with same protocol; original preserved"
+  },
+  "combined_upper_bound_after_api_restart": 540,
+  "final_completed_runs": 18,
+  "final_recorded_http_requests": 504,
+  "final_total_tokens": 1082783,
+  "total_recorded_calls_including_excluded": 538,
+  "unrecorded_interrupted_diagnostic_requests_upper_bound": 2
+}

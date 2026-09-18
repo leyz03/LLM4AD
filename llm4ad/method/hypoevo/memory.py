@@ -69,13 +69,17 @@ class ExperimentMemory:
 
     def add(self, *, child_id, parents, operator, hypothesis, child_code, result, error=None):
         parent = parents[0] if parents else None
+        evidence = paired_evidence(parent.result if parent else None, result)
         record = {
             'id': child_id, 'parent_ids': [p.id for p in parents], 'operator': operator,
             'hypothesis': asdict(hypothesis) if hypothesis else None,
             'parent_score': parent.result['score'] if parent else None,
             'child_score': result.get('score'), 'protocol_id': result.get('protocol_id'),
-            'evidence': paired_evidence(parent.result if parent else None, result),
+            'evidence': evidence,
             'error': error or result.get('error'),
+            'metadata': result.get('metadata', {}),
+            'hypothesis_test_eligible': bool(hypothesis) and evidence['status'] in
+                {'improved', 'regressed', 'unchanged'},
             'code_diff': ''.join(difflib.unified_diff(
                 parent.code.splitlines(keepends=True) if parent else [],
                 child_code.splitlines(keepends=True), fromfile='parent', tofile='child')),

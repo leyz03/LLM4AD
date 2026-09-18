@@ -28,6 +28,22 @@ def extract_tag(text, tag):
     return m.group(1).strip()
 
 
+def parse_hypothesis(text):
+    """Accept tagged, JSON-fenced or bare JSON without changing its contents.
+
+Providers often omit XML wrappers around an otherwise valid JSON response.
+Schema and prediction checks remain identical for all transport formats.
+"""
+    tagged = re.search(r'<hypothesis>(.*?)</hypothesis>', text, flags=re.S)
+    fenced = re.search(r'```json\s*\n(.*?)```', text, flags=re.S)
+    raw = tagged.group(1) if tagged else fenced.group(1) if fenced else text
+    start = raw.find('{')
+    if start < 0:
+        raise ValueError('missing hypothesis JSON object')
+    value, _ = json.JSONDecoder().raw_decode(raw[start:])
+    return Hypothesis.from_dict(value)
+
+
 def validate_program(code, template):
     """Strict interface/AST gate; deliberately not advertised as a security sandbox."""
     tree, reference = ast.parse(code), ast.parse(template)
@@ -131,21 +147,34 @@ class HypoEvo:
         self.attempts += 1
         child_id = self.attempts
         hypothesis, proposal, code = None, '', ''
+        metadata_errors = []
         result = {'score': None}
         try:
             if operator == 'reflection' and self.llm.remaining >= 2:
                 proposal = self.llm.draw_sample(messages=reflection_prompt(ctx, self.hypothesis_enabled))
                 if self.hypothesis_enabled:
-                    hypothesis = Hypothesis.from_dict(json.loads(extract_tag(proposal, 'hypothesis')))
+                    try:
+                        hypothesis = parse_hypothesis(proposal)
+                    except (ValueError, TypeError) as exc:
+                        metadata_errors.append('reflection_hypothesis: ' + str(exc))
+                        proposal = 'No valid hypothesis was registered. Propose one before implementation.'
+                    else:
+                        proposal = '<hypothesis>' + json.dumps(asdict(hypothesis), ensure_ascii=False) + '</hypothesis>'
             response = self.llm.draw_sample(messages=generation_prompt(
                 ctx, operator, proposal, self.hypothesis_enabled))
-            if self.hypothesis_enabled:
-                generated_hypothesis = Hypothesis.from_dict(json.loads(extract_tag(response, 'hypothesis')))
-                # Reflection's pre-registered prediction remains authoritative.
-                if hypothesis is not None and generated_hypothesis != hypothesis:
-                    raise ValueError('generation changed the pre-registered hypothesis')
-                hypothesis = hypothesis or generated_hypothesis
-            concept = extract_tag(response, 'concept')
+            if self.hypothesis_enabled and hypothesis is None:
+                try:
+                    hypothesis = parse_hypothesis(response)
+                except (ValueError, TypeError) as exc:
+                    metadata_errors.append('generation_hypothesis: ' + str(exc))
+            # In a two-call reflection, the first call's stored hypothesis is
+            # authoritative. Implementation replies need only concept + code;
+            # any repeated/paraphrased hypothesis cannot overwrite registration.
+            try:
+                concept = extract_tag(response, 'concept')
+            except ValueError as exc:
+                metadata_errors.append('concept: ' + str(exc))
+                concept = 'Generated candidate (description omitted)'
             blocks = re.findall(r'```(?:python)?\s*\n(.*?)```', response, flags=re.S)
             if len(blocks) != 1:
                 raise ValueError('expected one Python code block')
@@ -160,6 +189,11 @@ class HypoEvo:
             raise
         except (ValueError, SyntaxError, TypeError) as exc:
             result = {'score': None, 'error': f'{type(exc).__name__}: {exc}'}
+        result['metadata'] = {
+            'hypothesis_status': ('registered' if hypothesis else 'missing_or_invalid')
+                                  if self.hypothesis_enabled else 'disabled',
+            'errors': metadata_errors,
+        }
         self.memory.add(child_id=child_id, parents=parents, operator=operator,
                         hypothesis=hypothesis, child_code=code, result=result)
         retained = False

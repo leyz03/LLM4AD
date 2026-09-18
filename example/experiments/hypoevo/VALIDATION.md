@@ -35,3 +35,18 @@ package initializers add an opt-in minimal-import mode for the new scripts.
 Before real experiments on the target machine, repeat the offline checks there,
 configure the model through environment variables, and inspect `--dry-run`.
 See `README.md` for the pilot/full-matrix commands, limitations and cost bounds.
+
+## Subsequent real-model validation and metadata fix
+
+The statement above that no real calls were made describes the initial offline
+milestone only. Real qwen3.5-flash experiments were subsequently completed.
+
+- Metadata parsing/registration regressions: **39 tests passed**.
+- Offline replay: 38 of 39 format-rejected candidates passed the original
+  search evaluator, with no additional model calls.
+- Format fix separates metadata conformance from code execution validity;
+  missing hypotheses never count as eligible hypothesis tests.
+- Final comparison uses 12 completed format-fix runs plus 6 historical EoH
+  runs, following the user's request to reuse EoH and stop its rerun.
+- Results, per-instance scores, configurations and budget
+  accounting are archived in [results/20260917](results/20260917/README.md).

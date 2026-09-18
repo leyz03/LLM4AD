@@ -9,6 +9,9 @@ intervention: one main implementable change (cross may combine mechanisms);
 prediction: exactly "mean_score_increases";
 risk: a condition where the change could regress.
 The prediction concerns the paired mean score, not proof of the mechanism.
+Use valid JSON with double-quoted keys/values. Use plain text, not LaTeX or
+backslashes, and keep each field under 100 words. Do not claim an observed
+improvement unless the supplied paired evidence shows a positive score delta.
 '''
 
 
@@ -39,9 +42,12 @@ def generation_prompt(ctx, operator, proposal='', hypothesis_enabled=True):
         'cross': 'Use parent 0 as the foundation and transfer a specific useful mechanism from parent 1 if present.',
         'initialization': 'Generate a feasible initial algorithm.',
     }[operator]
+    registered = hypothesis_enabled and '<hypothesis>' in proposal
     instructions = action + '\n' + (
-        HYPOTHESIS_FORMAT if hypothesis_enabled else 'Give a concrete algorithm improvement; no hypothesis record required.\n')
-    instructions += ('If PROPOSAL contains a hypothesis, copy those fields unchanged; implement that intervention. '
+        'The PROPOSAL hypothesis is already registered. Implement it; do not repeat or rewrite the hypothesis.\n'
+        if registered else HYPOTHESIS_FORMAT if hypothesis_enabled else
+        'Give a concrete algorithm improvement; no hypothesis record required.\n')
+    instructions += (
                      'Return <concept>a concise description</concept> followed by exactly one Python code block. '
                      'Keep the supplied function name and signature; place helper definitions/imports inside it. '
                      'Use only numpy, math, random, statistics, collections, itertools, functools. '

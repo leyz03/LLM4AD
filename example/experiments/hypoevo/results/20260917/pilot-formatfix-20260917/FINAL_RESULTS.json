@@ -1,0 +1,278 @@
+{
+  "summary": [
+    {
+      "task": "tsp",
+      "method": "hypoevo",
+      "mean": 6.78407048285733,
+      "std": 0.20003618977378815,
+      "valid": 48,
+      "attempts": 51
+    },
+    {
+      "task": "tsp",
+      "method": "no_memory",
+      "mean": 6.681417531258509,
+      "std": 0.3443203366863781,
+      "valid": 51,
+      "attempts": 57
+    },
+    {
+      "task": "tsp",
+      "method": "eoh",
+      "mean": 6.832543629922683,
+      "std": 0.022904245748632823,
+      "valid": 71,
+      "attempts": 84
+    },
+    {
+      "task": "cvrp",
+      "method": "hypoevo",
+      "mean": 14.074245345534948,
+      "std": 0.04938361551431775,
+      "valid": 41,
+      "attempts": 50
+    },
+    {
+      "task": "cvrp",
+      "method": "no_memory",
+      "mean": 14.296131995774589,
+      "std": 0.012353586098807741,
+      "valid": 47,
+      "attempts": 57
+    },
+    {
+      "task": "cvrp",
+      "method": "eoh",
+      "mean": 14.072910750154987,
+      "std": 0.13300729844844547,
+      "valid": 47,
+      "attempts": 84
+    }
+  ],
+  "runs": [
+    {
+      "task": "tsp",
+      "method": "hypoevo",
+      "seed": 2024,
+      "source": "pilot-formatfix-20260917/seed2024/tsp/hypoevo/2024",
+      "cost": 6.563600503936398,
+      "valid": 17,
+      "attempts": 17,
+      "calls": 28,
+      "tokens": 137852,
+      "hypothesis_eligible": 13
+    },
+    {
+      "task": "tsp",
+      "method": "no_memory",
+      "seed": 2024,
+      "source": "pilot-formatfix-20260917/seed2024/tsp/no_memory/2024",
+      "cost": 7.077882315088054,
+      "valid": 18,
+      "attempts": 19,
+      "calls": 28,
+      "tokens": 41117,
+      "hypothesis_eligible": 10
+    },
+    {
+      "task": "tsp",
+      "method": "eoh",
+      "seed": 2024,
+      "source": "pilot-real-v3-20260917/seed2024/tsp/eoh/2024",
+      "cost": 6.855431757758524,
+      "valid": 24,
+      "attempts": 28,
+      "calls": 28,
+      "tokens": 43302,
+      "hypothesis_eligible": 0
+    },
+    {
+      "task": "cvrp",
+      "method": "hypoevo",
+      "seed": 2024,
+      "source": "pilot-formatfix-20260917/seed2024/cvrp/hypoevo/2024",
+      "cost": 14.10465451158409,
+      "valid": 13,
+      "attempts": 17,
+      "calls": 28,
+      "tokens": 127770,
+      "hypothesis_eligible": 9
+    },
+    {
+      "task": "cvrp",
+      "method": "no_memory",
+      "seed": 2024,
+      "source": "pilot-formatfix-20260917/seed2024/cvrp/no_memory/2024",
+      "cost": 14.288999649514984,
+      "valid": 16,
+      "attempts": 19,
+      "calls": 28,
+      "tokens": 43746,
+      "hypothesis_eligible": 8
+    },
+    {
+      "task": "cvrp",
+      "method": "eoh",
+      "seed": 2024,
+      "source": "pilot-real-v3-20260917/seed2024/cvrp/eoh/2024",
+      "cost": 14.226357381654871,
+      "valid": 13,
+      "attempts": 28,
+      "calls": 28,
+      "tokens": 25750,
+      "hypothesis_eligible": 0
+    },
+    {
+      "task": "tsp",
+      "method": "hypoevo",
+      "seed": 2025,
+      "source": "pilot-formatfix-20260917/seed2025/tsp/hypoevo/2025",
+      "cost": 6.834646285974302,
+      "valid": 16,
+      "attempts": 17,
+      "calls": 28,
+      "tokens": 126050,
+      "hypothesis_eligible": 11
+    },
+    {
+      "task": "tsp",
+      "method": "no_memory",
+      "seed": 2025,
+      "source": "pilot-formatfix-20260917/seed2025/tsp/no_memory/2025",
+      "cost": 6.509035683691285,
+      "valid": 17,
+      "attempts": 19,
+      "calls": 28,
+      "tokens": 45106,
+      "hypothesis_eligible": 10
+    },
+    {
+      "task": "tsp",
+      "method": "eoh",
+      "seed": 2025,
+      "source": "pilot-real-v3-20260917/seed2025/tsp/eoh/2025",
+      "cost": 6.809623300216562,
+      "valid": 25,
+      "attempts": 28,
+      "calls": 28,
+      "tokens": 42940,
+      "hypothesis_eligible": 0
+    },
+    {
+      "task": "cvrp",
+      "method": "hypoevo",
+      "seed": 2025,
+      "source": "pilot-formatfix-20260917/seed2025/cvrp/hypoevo/2025",
+      "cost": 14.10081639471879,
+      "valid": 13,
+      "attempts": 16,
+      "calls": 28,
+      "tokens": 128142,
+      "hypothesis_eligible": 10
+    },
+    {
+      "task": "cvrp",
+      "method": "no_memory",
+      "seed": 2025,
+      "source": "pilot-formatfix-20260917/seed2025/cvrp/no_memory/2025",
+      "cost": 14.310396688293796,
+      "valid": 15,
+      "attempts": 19,
+      "calls": 28,
+      "tokens": 38333,
+      "hypothesis_eligible": 9
+    },
+    {
+      "task": "cvrp",
+      "method": "eoh",
+      "seed": 2025,
+      "source": "pilot-real-v3-20260917/seed2025/cvrp/eoh/2025",
+      "cost": 14.001803474073537,
+      "valid": 17,
+      "attempts": 28,
+      "calls": 28,
+      "tokens": 25697,
+      "hypothesis_eligible": 0
+    },
+    {
+      "task": "tsp",
+      "method": "hypoevo",
+      "seed": 2026,
+      "source": "pilot-formatfix-20260917/seed2026/tsp/hypoevo/2026",
+      "cost": 6.95396465866129,
+      "valid": 15,
+      "attempts": 17,
+      "calls": 28,
+      "tokens": 132473,
+      "hypothesis_eligible": 10
+    },
+    {
+      "task": "tsp",
+      "method": "no_memory",
+      "seed": 2026,
+      "source": "pilot-formatfix-20260917/seed2026/tsp/no_memory/2026",
+      "cost": 6.457334594996187,
+      "valid": 16,
+      "attempts": 19,
+      "calls": 28,
+      "tokens": 44587,
+      "hypothesis_eligible": 7
+    },
+    {
+      "task": "tsp",
+      "method": "eoh",
+      "seed": 2026,
+      "source": "pilot-real-v3-20260917/seed2026/tsp/eoh/2026",
+      "cost": 6.832575831792965,
+      "valid": 22,
+      "attempts": 28,
+      "calls": 28,
+      "tokens": 33452,
+      "hypothesis_eligible": 0
+    },
+    {
+      "task": "cvrp",
+      "method": "hypoevo",
+      "seed": 2026,
+      "source": "pilot-formatfix-20260917/seed2026/cvrp/hypoevo/2026",
+      "cost": 14.017265130301961,
+      "valid": 15,
+      "attempts": 17,
+      "calls": 28,
+      "tokens": 136848,
+      "hypothesis_eligible": 10
+    },
+    {
+      "task": "cvrp",
+      "method": "no_memory",
+      "seed": 2026,
+      "source": "pilot-formatfix-20260917/seed2026/cvrp/no_memory/2026",
+      "cost": 14.288999649514984,
+      "valid": 16,
+      "attempts": 19,
+      "calls": 28,
+      "tokens": 51045,
+      "hypothesis_eligible": 10
+    },
+    {
+      "task": "cvrp",
+      "method": "eoh",
+      "seed": 2026,
+      "source": "pilot-real-v3-20260917/seed2026/cvrp/eoh/2026",
+      "cost": 13.990571394736556,
+      "valid": 17,
+      "attempts": 28,
+      "calls": 28,
+      "tokens": 25561,
+      "hypothesis_eligible": 0
+    }
+  ],
+  "budget": {
+    "new_recorded_calls": 433,
+    "new_recorded_tokens": 1181577,
+    "new_call_upper_bound": 435,
+    "formal_new_calls": 336,
+    "reused_old_calls": 168,
+    "note": "New EoH runs excluded by user request; old EoH results reused. Interrupted requests may be billable."
+  }
+}

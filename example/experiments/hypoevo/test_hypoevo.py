@@ -14,7 +14,7 @@ os.environ['LLM4AD_MINIMAL_IMPORTS'] = '1'
 
 from llm4ad.base import LLM, SecureEvaluator
 from llm4ad.method.hypoevo import HypoEvo
-from llm4ad.method.hypoevo.hypoevo import validate_program
+from llm4ad.method.hypoevo.hypoevo import validate_program, parse_hypothesis
 from llm4ad.method.hypoevo.memory import ExperimentMemory, Hypothesis, paired_evidence
 from llm4ad.method.hypoevo.population import Candidate, NichePopulation
 from llm4ad.method.hypoevo.runtime import BudgetedLLM, BudgetExhausted
@@ -47,6 +47,15 @@ def test_invalid_is_not_evidence_against_mechanism():
 def test_hypothesis_schema():
     with pytest.raises(ValueError):
         Hypothesis.from_dict({'prediction': 'all inputs improve'})
+
+
+@pytest.mark.parametrize('wrapper', ['{}', '<hypothesis>{}</hypothesis>', '```json\n{}\n```'])
+def test_real_model_json_transport_formats(wrapper):
+    value = {'observation': 'conjecture', 'mechanism': 'locality', 'intervention': 'lookahead',
+             'prediction': 'mean_score_increases', 'risk': 'longer routes'}
+    assert parse_hypothesis(wrapper.format(json.dumps(value))).intervention == 'lookahead'
+    with pytest.raises(ValueError):
+        parse_hypothesis(wrapper.format('{"prediction": "unverified"}'))
 
 
 def test_failure_memory_survives_retention(tmp_path):
@@ -181,7 +190,9 @@ def test_invalid_generations_terminate_and_persist(tmp_path):
     best = method.run()
     assert method.llm.calls == 3 and method.valid == 0
     assert best.id == 0
-    assert len(method.memory.path.read_text().splitlines()) == 3
+    records = [json.loads(line) for line in method.memory.path.read_text().splitlines()]
+    assert len(records) == 2  # failed reflection metadata still proceeds to implementation
+    assert all(r['evidence']['status'] == 'invalid_child' for r in records)
 
 
 def test_spawn_timeout(tmp_path):
@@ -210,3 +221,59 @@ def test_no_memory_does_not_read_or_summarize_history(tmp_path):
     records = [json.loads(s) for s in (tmp_path / 'llm_trace.jsonl').read_text().splitlines()]
     assert all('PAIRED EXPERIMENT RECORDS' not in json.dumps(r['messages']) for r in records)
     assert method.memory.version == 2 and method.memory.summary == ''
+
+
+@pytest.mark.parametrize('repeat_hypothesis', [False, True])
+def test_registered_hypothesis_survives_implementation_reply(tmp_path, repeat_hypothesis):
+    import re
+    evaluator = RoutingEvaluation('tsp', size=5, instances=1)
+
+    class ImplementationLLM(FakeLLM):
+        def draw_sample(self, *args, **kwargs):
+            reply = super().draw_sample(*args, **kwargs)
+            if 'You design executable' in kwargs['messages'][0]['content']:
+                if repeat_hypothesis:
+                    reply = reply.replace('Modify one distance score term.', 'A paraphrased intervention.')
+                else:
+                    reply = re.sub(r'<hypothesis>.*?</hypothesis>', '', reply, flags=re.S)
+            return reply
+
+    method = HypoEvo(ImplementationLLM(evaluator), evaluator, tmp_path, max_calls=2)
+    method.evaluator.evaluate_program = lambda code: outcome([-4])
+    method.run()
+    assert method.valid == 1
+    assert method.memory.records[0]['hypothesis']['intervention'] == 'Modify one distance score term.'
+
+
+@pytest.mark.parametrize('operator', ['reflection', 'summary', 'cross'])
+@pytest.mark.parametrize('broken_code', [False, True])
+def test_metadata_failure_does_not_hide_code_outcome(tmp_path, operator, broken_code):
+    import re
+    evaluator = RoutingEvaluation('tsp', size=5, instances=1)
+
+    class MissingMetadata(FakeLLM):
+        def draw_sample(self, *args, **kwargs):
+            reply = super().draw_sample(*args, **kwargs)
+            reply = re.sub(r'<hypothesis>.*?</hypothesis>', '', reply, flags=re.S)
+            reply = re.sub(r'<concept>.*?</concept>', '', reply, flags=re.S)
+            if broken_code and '```python' in reply:
+                reply = '```python\ndef broken(:\n```'
+            return reply
+
+    method = HypoEvo(MissingMetadata(evaluator), evaluator, tmp_path,
+                     max_calls=2 if operator == 'reflection' else 1,
+                     partitions=1, operators=(operator,), memory_enabled=False)
+    evaluated = []
+    def evaluate(code):
+        evaluated.append(code)
+        return outcome([-4])
+    method.evaluator.evaluate_program = evaluate
+    method.run()
+    record = method.memory.records[0]
+    assert record['hypothesis'] is None
+    assert not record['hypothesis_test_eligible']
+    assert record['metadata']['hypothesis_status'] == 'missing_or_invalid'
+    assert record['metadata']['errors']
+    assert method.valid == (0 if broken_code else 1)
+    assert len(evaluated) == (1 if broken_code else 2)  # baseline plus valid child
+    assert (record['evidence']['status'] == 'invalid_child') == broken_code

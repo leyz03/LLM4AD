@@ -62,8 +62,9 @@ Three operators share the same interface, evaluator, population and ledger:
 
 The hypothesis fields are `observation`, `mechanism`, `intervention`,
 `prediction`, and `risk`. The currently machine-checked prediction is
-`mean_score_increases` on fixed search instances. A reflection's fields must be
-copied unchanged by the implementation call. This is **not** proof that the
+`mean_score_increases` on fixed search instances. A reflection's fields are
+registered before implementation; the second call returns concept/code and
+cannot overwrite the stored hypothesis by repeating or paraphrasing it. This is **not** proof that the
 proposed mechanism caused the result; code diffs are saved for subsequent
 inspection/controlled ablations. Mechanistic or subgroup predictions are not
 automatically verified. Richer counterfactual experiments are future work.
@@ -206,3 +207,18 @@ explicitly. Rebuild a partial report with:
 ```bash
 python example/experiments/hypoevo/analyze_results.py PATH_TO_OUTPUT
 ```
+
+### Metadata-tolerant generation
+
+Candidate execution validity is separate from metadata conformance. A missing
+`concept` gets a fixed placeholder; a missing or malformed hypothesis is logged
+as `missing_or_invalid`, without fabricating a replacement. Failed reflection
+metadata no longer prevents the implementation call. Every candidate still
+passes the same AST/interface and isolated routing evaluation gates. Trial
+records contain `metadata` and `hypothesis_test_eligible`; eligibility requires
+a valid pre-evaluation hypothesis and comparable paired evaluation, and does
+not establish the proposed mechanism causally. Missing metadata remains visible
+in the candidate and trial logs even when code is accepted into the population.
+
+The format-fix rerun keeps model, data, seeds and per-run call budget fixed.
+It is a new search trajectory, not a replacement of results in the earlier run.

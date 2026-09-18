@@ -1,0 +1,14 @@
+{
+  "decision": "User requested reusing previous EoH; all new EoH excluded from final comparison",
+  "source": "pilot-real-v3-20260917",
+  "stopped_orchestrators": [
+    61436,
+    61437,
+    61438
+  ],
+  "stopped_eoh_workers": [
+    68101,
+    68800
+  ],
+  "inflight_unrecorded_call_upper_bound": 2
+}
