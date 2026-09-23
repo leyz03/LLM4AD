@@ -23,7 +23,12 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
 import sys
 
-sys.path.append('..')
+# This file resolves its assets and configs with cwd-relative paths
+# ('./image/...', '../llm4ad/...'), so anchor the cwd to this file's directory
+# rather than wherever the interpreter happened to be launched from.
+_GUI_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(_GUI_DIR)
+sys.path.insert(0, os.path.dirname(_GUI_DIR))
 
 import time
 from datetime import datetime
@@ -260,10 +265,17 @@ def get_required_parameters(path):
     value_type = []
     default_value = []
 
+    # Some shipped methods (e.g. mles, partevo) have no paras.yaml, yet still
+    # get listed in the method box, so a missing file is a normal case here
+    # rather than an error: show an empty parameter panel instead of raising.
+    if not os.path.exists(path):
+        print(f'[run_gui] no parameter file at {path}; showing empty panel')
+        return required_parameters, value_type, default_value
+
     with open(path, 'r', encoding='utf-8') as file:
         data = yaml.safe_load(file)  # 使用 safe_load 读取 YAML 文件
 
-    for key, value in data.items():
+    for key, value in (data or {}).items():
         required_parameters.append(key)
         value_type.append(str(type(value)))
         if value is None:
