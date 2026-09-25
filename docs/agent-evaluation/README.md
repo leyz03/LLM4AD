@@ -1,138 +1,160 @@
-# Agent Evaluation 项目调研与立项草案
+# ModelEval：数学建模 Agent 评测平台（工程作品方案 v2）
 
-> 日期：2026-09-25。调研基于公开网页检索；arXiv 在当前环境被网络策略屏蔽，论文细节来自检索摘要与项目主页，标注"待核"的条目需要读原文确认。
+> 日期：2026-09-25。目标是一个**工程作品**，不做算法自进化。通用评测框架调研见 [survey-and-optimization-idea.md](./survey-and-optimization-idea.md)。
+> 下文对 MathModelAgent 和 MM-Agent 的描述来自 2026-09 两个仓库的实际代码（浅克隆阅读），其余项目来自公开网页检索。
 
 ---
 
-## 1. 开源项目速览
+## 1. 被测对象：开源数学建模 agent
 
-### 1.1 通用评测基础设施（harness / runner）
+| 项目 | 形态 | 输出 | 技术栈（读代码确认） |
+|---|---|---|---|
+| [**MathModelAgent**](https://github.com/jihe520/MathModelAgent)（jihe520，社区热度高，2026-09 仍在更新） | **两代并存**：① 旧版 multi-agent 工作流（Coordinator → Modeler → Coder → Writer）；② 新版**纯 SKILLS**，跑在 Claude Code / Codex 上（`/1start-mathmodel`），作者已声明"不再做 harness 层" | Typst/LaTeX 排版的整篇竞赛论文（PDF）+ notebook 代码 + `reports/VERIFY_REPORT.md` | 旧版：FastAPI + WebSocket + Redis，LiteLLM 接任意模型，本地 Jupyter 或 E2B/Daytona 云端代码解释器，ChromaDB+Rerank RAG，Tavily 搜索；新版：6 个阶段 skill（分析建模 → 编码可视化 → draw.io → 写作 → 验收），17 套赛事 Typst 模板，9 步自动验收脚本 |
+| [**MM-Agent**](https://github.com/usail-hkust/LLM-MM-Agent)（HKUST，NeurIPS 2025） | 固定 4 阶段流水线：问题分析 → 建模 → 求解 → 报告；HMML 分层建模知识库 + actor-critic 选方法 | 结构化 JSON 解 + 报告 | 纯 Python；自带 **MM-Bench**：111 道 MCM/ICM（2000–2025）题目 JSON + 22 套数据集 |
+| ModelingAgent（UIUC，EMNLP 2025） | 多 agent 框架；配套 **ModelingBench**：68 道 COMAP 系列题（MCM/ICM、HiMCM、IM2C） | 报告 | 代码是否完整开源**待核** |
+| 裸 harness 基线 | Claude Code / Codex **不装任何建模 skill**，只给题目 | 自由形式 | 用来回答"skill 本身值多少分" |
 
-| 项目 | 定位 | 技术选型要点 |
-|---|---|---|
-| [AgentCompass](https://github.com/open-compass/agentcompass)（OpenCompass，EMNLP 2026 Demo） | 统一 agent 评测基础设施 | 把 **Model / Benchmark / Harness / Environment 四者解耦**；Python + CLI 入口，async 并发；local / Docker / 远程 sandbox 三种执行后端；增量持久化、失败重试、断点续评；记录轨迹、tool call、token、延迟，带可插拔 analyzer 做失败归因；内置 20+ benchmark、10+ harness（Claude Code、Codex、OpenHands、OpenClaw 等） |
-| [Harbor](https://github.com/harbor-framework)（Terminal-Bench 团队，2026-01） | 容器内 agent 评测 + RL rollout 生成 | **任务 = 容器镜像 + 指令 + 测试脚本** 的标准任务格式；registry 分发数据集（Terminal-Bench 2.0/2.1、terminal-bench-science 都走它）；对接多家云 sandbox，常用 32–100 容器并行；同一套任务既做 eval 又做 RL 环境 |
-| [Inspect AI](https://inspect.aisi.org.uk/) + [inspect_evals](https://github.com/UKGovernmentBEIS/inspect_evals)（UK AISI） | 前沿安全评测事实标准 | **Task = Dataset + Solver + Scorer** 三段式；内置 ReAct/多 agent 原语，也能直接跑 Claude Code / Codex CLI / Gemini CLI；`SandboxEnvironment` 抽象支持 Docker、K8s、Modal、Proxmox 等；配套 [aisi-sandboxing](https://github.com/UKGovernmentBEIS/aisi-sandboxing) 与日志查看器 |
-| Holistic Agent Leaderboard (HAL) | 跨 benchmark 标准化排行 | 统一 scaffold × model × benchmark 网格；主要问题是成本——9 个 benchmark 约 4 万美元，且每个配置只跑 1 次（引自 *Efficient Benchmarking of AI Agents*, 2026） |
+**关键发现（这是你的切入点）：**
 
-### 1.2 代表性 benchmark
+1. MathModelAgent 作者在 README 里明确写着：*"Harness SKILL 的优化需要大量黑盒测试和调优"*，欢迎贡献者*"在不同的 Harness 上测试不同的 LLM，提供反馈和案例"*。**上游已经公开需要一个评测系统，没人做。**
+2. MM-Bench 现有打分脚本（`MMBench/evaluation/`，约 780 行）的局限：
+   - 单个 GPT-4o 评委，`temperature=0.7`，单次采样，分数由正则 `<score>(\d+)</score>` 抽取 → **同一份解两次打分可能不同**；
+   - 只吃 MM-Agent 自己的 JSON 格式 → **评不了输出 PDF 论文的 MathModelAgent**；
+   - **不执行代码**：论文里写的数字是否真由代码算出，完全不校验；
+   - 没有评委与人工打分的一致性校准。
+3. MCM/ICM 历年题目和获奖论文都在网上，**数据污染**是真实风险：需要用模型知识截止之后的新题做留出集。
 
-| Benchmark | 评什么 | 对你有用的设计 |
-|---|---|---|
-| Terminal-Bench 2.0 / 2.1 | 容器内长程命令行任务（2.1 共 89 题） | Harbor 任务格式；结果对 harness 极其敏感 |
-| τ-bench / τ²-bench | 多轮客服 agent，LLM 模拟用户 + 有类型的 API + 数据库状态 | **pass^k**（k 次独立 rollout 全部成功）作为可靠性指标；同时校验最终 DB 状态和是否遵守 policy |
-| [ALE-Bench](https://sakana.ai/ale-bench/)（Sakana × AtCoder） | 40 道 AtCoder 启发式赛题，长时程、按分数排名的算法工程 | **没有 pass/fail，只有分数**；带 code sandbox，允许在时间预算内反复提交拿 public 反馈；与人类排名对齐 |
-| [CO-Bench](https://github.com/sunnweiwei/CO-Bench)（AAAI 2026）/ [FrontierCO](https://huggingface.co/datasets/CO-Bench/FrontierCO)（ICLR 2026） | agent 为组合优化设计算法 | 8 类 CO 问题、真实大规模实例（TSP 至千万节点）；**LLM4AD 已内置 `llm4ad/task/optimization/co_bench`** |
-| HeuriGym | agent 写 CO 启发式 | 反复执行-反馈的 agentic 协议 |
-| Opti-Agent-Bench / ORAgentBench / FrontierOR（2026，待核） | 端到端运筹 R&D agent：建模 → 求解 → 算法设计 | 来自真实业务问题，考察完整研发闭环而非单次建模 |
-| Harness-Bench（2026，待核） | 专门测 harness 效应 | 同一模型换 harness 分数可差 10–20 个百分点（例：LangChain 仅改 harness，Terminal-Bench 从 52.8% 升到 66.5%；CORE-Bench 同模型 42% vs 78%） |
+---
 
-### 1.3 可观测性与打分层
+## 2. 业务背景
 
-| 工具 | 角色 |
+> **场景：数模竞赛辅导 / 在线建模服务平台的"模型与 skill 质量门禁"**
+>
+> 一家做数学建模教学与竞赛辅导的平台（形态类似 MathModelAgent 作者运营的在线版），把建模 agent 作为付费功能提供给学生。每逢国赛、美赛前，平台面对三个工程问题：
+> 1. **选型与成本**：底座用哪个模型、跑在 Claude Code 还是 Codex 上？每篇论文成本 $1 还是 $15，质量差多少？
+> 2. **回归测试**：每次改 skill/prompt/模板，质量是升了还是降了？现在全靠人工看几篇 PDF。
+> 3. **可信度**：论文里的数字是不是代码真算出来的？有没有编造数据、答漏小问、引用不存在的文献？学生直接提交会出事。
+>
+> ModelEval 为此提供：**统一的运行器 + 可复现的分层打分 + 排行榜 + CI 回归门禁**。
+
+这个场景的好处：
+- 有真实上游用户（MathModelAgent 社区），作品可以直接提 PR / issue 反馈，简历上是"给 X star 项目搭了评测体系"；
+- 覆盖了 agent eval 工程里最硬的几块：**异构 agent 适配、沙箱执行、LLM-as-judge 校准、成本核算、统计显著性、CI 集成**；
+- 与你的背景仍有连接（统计严谨性、效度审计、运筹建模），但不依赖算法自进化。
+
+---
+
+## 3. 评测设计：三层打分
+
+```
+题目 (MM-Bench / ModelingBench / 留出新题)
+   │
+   ▼
+Adapter ──► 各 agent 在容器中运行 ──► 产物 (PDF/Typst/LaTeX/JSON, 代码, 数据, 图)
+   │                                           │
+   │  所有 LLM 调用经 LiteLLM proxy ────────────┤──► 统一 token/成本/延迟 (OTel → Langfuse)
+   ▼                                           ▼
+                       Normalizer → Solution Bundle（章节、小问答案、数值结论、代码、图表）
+                                               │
+          ┌────────────────────────────────────┼─────────────────────────────┐
+          ▼                                    ▼                             ▼
+   L1 硬检查（程序化，确定性）          L2 评委打分（LLM panel）        L3 过程与成本
+```
+
+### L1 硬检查（确定性，最有说服力，优先做）
+| 检查 | 做法 |
 |---|---|
-| OpenTelemetry GenAI 语义约定（2026 初稳定） | `gen_ai.*` 属性统一记录 prompt、模型、token、tool/agent 调用——**先对这个 schema 埋点，后端随时可换** |
-| [Langfuse](https://langfuse.com)（MIT，可自托管） | trace + 数据集 + 打分面板 |
-| Arize Phoenix（OpenInference） | trace/session 级 trajectory 评估、漂移检测 |
-| DeepEval / Ragas | 指标引擎（LLM-as-judge 等），分数回写到 trace |
+| 完成度 | 是否产出论文；每个小问是否有对应章节与结论（题目要求 → 论文章节的覆盖率） |
+| 可编译 | Typst/LaTeX 能否编译出 PDF |
+| **可复现** | 在干净沙箱里重跑 agent 交付的代码，检查能否运行成功 |
+| **数值一致性** | 从论文抽取关键数值（LLM 抽取 + 正则），与重跑代码的输出比对（相对误差阈值）→ 编造/不一致率 |
+| 数据使用 | 题目给了数据集时，代码是否真的读了它 |
+| 引用真实性 | 参考文献能否在 Crossref / Semantic Scholar 检索到 |
+| 格式违规 | 占位符、内部路径泄露、图表引用断链（可复用 MathModelAgent `6verity` 脚本的检查项） |
 
-### 1.4 2026 研究热点（决定你能在哪儿做出贡献）
+### L2 评委打分（主观质量）
+- 维度沿用 MM-Bench 的 4 项（问题分析、建模严谨性、实用与科学性、结果与偏差分析），并补充 ModelingBench 维度中可落地的"创造性""真实性"；每个维度写**带锚点的 rubric**（1/3/5/7/10 分各给示例）。
+- **评委团**：2–3 个不同厂商的模型，`temperature=0`，每份解打 3 次取中位数，报告评委间一致性。
+- **成对比较**：与 O 奖 / Finalist 人类论文做 pairwise，胜率 → Bradley-Terry 排名，比绝对分更稳。
+- **评委校准**：你和 2–3 位有数模经验的同学人工标注约 30 篇，计算与评委的 Spearman / Krippendorff α。**这一步决定平台可信度，也是作品里最能体现方法论的部分。**
+- 评委位置偏差（A/B 顺序互换）、长度偏差（字数与分数的相关）要做检测。
 
-1. **Harness 是隐藏变量**：*The Scaffold Effect in Coding Agents*、Harness-Bench、StateM（Terminal-Bench 2.1 靠 harness scaling 到 95.3%）——把"模型分数"和"harness 分数"拆开成了共识需求。
-2. **评测成本与统计可靠性**：*Efficient Benchmarking of AI Agents*、*Beyond Outcomes: Dual-View Relational Learning for Efficient Agent Benchmarking*——用少量任务子集预测全量排名。
-3. **自动优化 harness**：Task-CoEvolve（验证任务选择与 harness 协同进化）、CHILL-Harness、HarnessBridge——**用进化/搜索改 agent 本身**，与你的 LLM4AD 背景直接同构。
-4. **超越最终分数**：*Beyond Final Scores*（长程 AI R&D agent 的过程性评估）、AgentCompass 的 trajectory analyzer——关注过程而非只看结果。
+### L3 过程与成本
+Token、美元成本、墙钟时间、工具调用数、代码报错与重试次数、是否人工介入。输出**质量-成本 Pareto 图**。
+
+### 统计与防污染
+- 每个配置至少 3 个种子；排行榜全部带 bootstrap 95% CI；两配置差异做配对检验。
+- **留出集**：选模型知识截止之后的赛题（例如 2026 年的 MCM/ICM 和国赛题），对比"旧题 vs 新题"的分差，量化污染。赛题版权属于主办方，仓库只存题目链接与下载脚本，不直接分发原文。
 
 ---
 
-## 2. 技术选型归纳
+## 4. 技术选型
 
-| 层 | 主流做法 | 推荐 |
+| 层 | 选型 | 理由 |
 |---|---|---|
-| 任务格式 | Harbor 任务目录 / Inspect Task / 自定义 YAML | **Harbor 格式**：与 Terminal-Bench 生态兼容，天然容器化，一套任务同时可做 RL 环境 |
-| 被测 agent | Claude Code、Codex CLI、OpenHands、mini-swe-agent、自研 ReAct | 至少 3 个 CLI agent + 1 个极简 ReAct 基线 + **LLM4AD 的 EoH/FunSearch 作为"非 agent"进化基线** |
-| 执行隔离 | Docker（本地）→ Modal/E2B/K8s（扩容） | 本地 Docker 起步；LLM4AD 现有 evaluator 的超时/沙箱逻辑可复用为容器内打分器 |
-| 调度 | asyncio 并发 + 断点续跑 + 失败重试 | 抄 AgentCompass 的设计：每个 (task, agent, model, seed) 一行持久化，幂等可续 |
-| 追踪 | OTel GenAI 语义约定 | OTel 埋点 → 自托管 Langfuse |
-| 打分 | 单测 pass/fail；分数型；LLM-as-judge | 以**客观分数**为主（gap to BKS），LLM-judge 仅用于过程标注 |
-| 统计 | 单次运行、均值 | pass^k、多 seed bootstrap CI、混合效应模型拆 model × harness × task 方差 |
+| 评测框架 | **Inspect AI**（Task = Dataset + Solver + Scorer） | 原生支持运行 Claude Code / Codex 等外部 agent、Docker 沙箱、自带日志查看器；scorer 可以直接写成上面的 L1/L2 |
+| 备选 | Harbor 任务格式 | 如果想把任务发布到 Terminal-Bench 生态；两者可以共存 |
+| 沙箱 | Docker（镜像内预装 Python 科学栈、Typst、TeX Live 精简版） | 复现性检查必须在干净环境 |
+| LLM 网关 | **LiteLLM proxy** | 所有被测 agent（含 MathModelAgent 旧版本身就用 LiteLLM）都指向同一个网关 → 成本/token 统一记账、限速、切换模型不改 agent 代码 |
+| 追踪 | OpenTelemetry GenAI 约定 → 自托管 Langfuse | 轨迹、成本、评委打分挂在同一条 trace 上 |
+| PDF/文档解析 | Typst/LaTeX 源码优先；只有 PDF 时用 PyMuPDF / marker | 数值抽取与章节切分 |
+| 存储 | 每次运行一个目录（产物 + `result.json`），汇总到 DuckDB / Parquet | 易 diff、易复现 |
+| 可视化 | Streamlit 或静态 leaderboard 页面 | 排行榜、Pareto 图、单篇论文逐项检查报告 |
+| CI | GitHub Actions：对 skill 仓库的 PR 跑 5 题"冒烟集"，L1 必须全过，L2 不得显著下降 | 对应"回归测试"业务需求 |
 
 ---
 
-## 3. 结合你学术背景的业务场景
+## 5. 仓库结构草图
 
-### 你的背景画像（从本仓库推断）
-- LLM 驱动的自动算法设计（EoH / FunSearch 类进化框架）；
-- VRP/LNS 的 destroy–repair 算子协同进化，CVRP 相关工作；
-- **LLM 变异坍缩**（生成算子趋同）与多样性度量的**效度审计**（L2 probe 输出距离通过 held-out 检验）；
-- 信用分配；
-- 统计上较严谨：噪声偏差修正、置换检验、功效分析、预注册决策规则、构念效度。
+```
+modeleval/
+  adapters/            # mathmodelagent_skills.py, mathmodelagent_legacy.py, mm_agent.py, bare_harness.py
+  tasks/               # 题目加载：mmbench.py, modelingbench.py, holdout.py
+  normalize/           # PDF/Typst/JSON → SolutionBundle
+  scorers/
+    l1_checks/         # compile.py, reproduce.py, numeric_consistency.py, coverage.py, citations.py
+    l2_judge/          # rubric.yaml, panel.py, pairwise.py, calibration.py
+    l3_cost.py
+  analysis/            # bootstrap CI, Bradley-Terry, Pareto
+  dashboard/
+  docker/
+  human_labels/        # 人工校准标注（匿名化）
+```
 
-这些正好对应 agent evaluation 里最缺的三件事：**分数型（非 pass/fail）任务、过程行为度量、统计可信度**。
+---
 
-### 推荐业务背景：物流调度"优化工程 agent"的采购与上线评测
+## 6. 里程碑（约 6–7 周，可随时停在一个能展示的版本）
 
-> **场景**：一家城配/即时物流公司每天面对不断变化的 VRP 变体（时间窗、多车型、临时封路、订单波峰）。算法团队人手有限，准备让 coding agent（Claude Code / Codex / OpenHands 等）承担"根据新约束改写和调优路由启发式"的工作。管理层要回答：
-> 1. **选哪个 agent + 模型 + harness 组合？** 花多少钱能换来多少 gap 改善？
-> 2. **agent 交付的启发式可信吗？** 会不会只在给定实例上过拟合、换了规模/分布就崩？
-> 3. **agent 是在真正搜索，还是在反复提交换汤不换药的代码？** 何时应该停止、换策略或交给人？
-
-项目名暂定 **OptAgentEval**：面向"优化算法研发 agent"的评测平台与方法学。
-
-#### 为什么这个场景和你匹配
-| 业务问题 | 对应的你已有的能力 | 可产出的研究贡献 |
+| 周 | 交付 | 可展示点 |
 |---|---|---|
-| 选型：model × harness × 预算 | 统计复核、功效分析 | **Harness 效应分解**：混合效应模型给出 model / harness / task 的方差占比与置信区间；成本-性能 Pareto 前沿 |
-| 交付物可信度 | 构念效度、held-out 审计 | **泛化审计协议**：public 实例开发 / private 实例打分，并加规模外推（100 → 1k → 10k 节点）与分布偏移（聚类 vs 均匀客户点） |
-| agent 在搜索还是在打转 | 变异坍缩、L2 probe 距离度量 | **探索坍缩度量**：把 agent 每次提交的启发式看作一个"个体"，用你已验证过的行为距离度量 trajectory 内多样性，检测坍缩并预测最终分数 |
-| 哪一步带来提升 | 信用分配 | **轨迹级信用分配**：把分数提升归因到具体动作（读文献、改 destroy、调参、加 local search） |
-| 评测太贵 | 自适应选择（UCB 等） | **自适应任务/实例子集选择**：少量实例预测全量排名（对标 Efficient Benchmarking、Task-CoEvolve） |
+| 1 | 跑通 1 题 × 2 agent（MathModelAgent skills on Claude Code、MM-Agent），全部经 LiteLLM 网关 | 第一张成本对比表 |
+| 2 | Normalizer + L1 全部硬检查 | "X% 的论文数值与代码不一致"——**第一个有传播力的发现** |
+| 3 | 扩到 15–20 题子集 × 4 配置 × 3 种子；裸 harness 基线 | Skill 消融：skill 带来多少提升 |
+| 4 | L2 评委团 + 人工校准 30 篇 | 评委-人工一致性报告；对比 MM-Bench 原脚本的打分方差 |
+| 5 | 排行榜 + Pareto 图 + 单篇报告 dashboard | 可演示的网页 |
+| 6 | 留出新题污染分析；CI 冒烟门禁 | 给 MathModelAgent 提 issue/PR 附报告 |
+| 7 | 文档、README、技术博客 | 作品集收尾 |
 
-#### 关键设计：把 LLM4AD 当作"对照组"
-同一个任务，同一份 LLM 调用预算，分别交给：
-- (A) 通用 coding agent（开放式、自主工具调用）；
-- (B) LLM4AD 的进化方法（EoH / FunSearch / 你的 HypoEvo）。
+### 首个实验矩阵（建议）
+| 配置 | agent | harness | 模型 |
+|---|---|---|---|
+| A | MathModelAgent skills | Claude Code | 模型 1 |
+| B | MathModelAgent skills | Codex | 模型 2 |
+| C | 裸 harness（无 skill） | Claude Code | 模型 1 |
+| D | MM-Agent | 自带流水线 | 模型 1（经 LiteLLM） |
 
-"通用 agent 与专用进化搜索在算法设计上孰优孰劣、差在哪里"是当前没人系统回答过的问题，也是你最有资格回答的问题。
-
-### 备选场景（若想离开物流）
-- **芯片 EDA 布局 / 调度启发式 agent**：同样是分数型优化，工业味更浓，但数据获取难。
-- **供应链计划 agent（建模 + 求解）**：对标 Opti-Agent-Bench / ORAgentBench，偏 MIP 建模而非启发式设计，与你的 LNS 背景距离稍远。
-
----
-
-## 4. MVP 路线（约 8 周）
-
-| 周 | 目标 | 产物 |
-|---|---|---|
-| 1–2 | 任务层：把 LLM4AD 的 CVRP/VRPTW/OVRP + co_bench 子集封装为 Harbor 格式；public/private/scale-shift 三套实例；打分 = gap to BKS | `tasks/` 10–15 个容器化任务 |
-| 3 | Runner：并发调度、断点续跑、OTel 埋点 → Langfuse；每次提交的代码快照入库 | 可复现的 runner |
-| 4–5 | 基线网格：3 agent × 2 模型 × 5 seed + LLM4AD EoH 基线，统一 token/时间预算 | 第一版结果表 + 成本曲线 |
-| 6 | 过程度量：anytime 曲线、提交多样性（L2 probe 距离）、坍缩检测、泛化 gap | 行为分析报告 |
-| 7 | 统计：pass^k 的分数版（best-of-k / worst-of-k）、bootstrap CI、混合效应方差分解；**预注册**主要假设 | 预注册文档 + 统计脚本 |
-| 8 | 评测降本：自适应实例子集预测全量排名 | 论文初稿骨架 |
-
-### 预注册的候选主假设
-- H1：同一模型下，harness 引起的 gap 方差 ≥ 模型引起的方差。
-- H2：agent 轨迹前 30% 的提交多样性（L2 距离）显著预测最终 gap（控制模型与任务）。
-- H3：通用 coding agent 在 public 实例上不劣于 EoH，但 private / 规模外推的泛化 gap 更大。
+A vs C 得出 skill 的价值，A vs B 得出 harness 与模型的差异，A vs D 比较 skill 驱动与固定流水线两种架构。
 
 ---
 
-## 5. 待确认事项
-1. 算力与 API 预算（决定网格大小与 seed 数）。
-2. 是否需要闭源 agent（Claude Code / Codex）还是只用开源 agent + 开源模型（Qwen 等）。
-3. 目标产出：论文（投 NeurIPS D&B / ICLR）还是工程作品集，两者侧重不同。
+## 7. 需要你确认
+1. API 预算：一题一配置一次大约 $1–15（MM-Agent 论文报告 GPT-4o 下约 $0.88/题；Claude Code 全流程写论文会贵得多），4 配置 × 20 题 × 3 种子 = 240 次运行，要按预算缩放。
+2. 能否找到 2–3 位有数模竞赛经验的同学做人工校准标注。
+3. 是否要中文国赛题（MathModelAgent 主打国赛模板）还是先只做美赛英文题（MM-Bench 现成）。建议先英文，第二阶段再加国赛。
 
-## 参考链接
-- AgentCompass: https://github.com/open-compass/agentcompass ，论文页 https://huggingface.co/papers/2607.13705
-- Harbor: https://github.com/harbor-framework ，Terminal-Bench 2: https://github.com/harbor-framework/terminal-bench-2
-- Inspect: https://inspect.aisi.org.uk/ ，inspect_evals: https://github.com/UKGovernmentBEIS/inspect_evals
-- ALE-Bench: https://sakana.ai/ale-bench/
-- CO-Bench: https://github.com/sunnweiwei/CO-Bench ，FrontierCO: https://huggingface.co/datasets/CO-Bench/FrontierCO
-- τ-bench 方法学: https://benchmarkingagents.com/tau-bench/
-- Efficient Benchmarking of AI Agents: https://arxiv.org/html/2603.23749v1
-- Scaffold Effect: https://arxiv.org/pdf/2607.22585 ；Harness-Bench: https://arxiv.org/html/2605.27922v1
-- Task-CoEvolve: https://arxiv.org/pdf/2608.20169
-- Opti-Agent-Bench: https://arxiv.org/html/2607.10768 ；ORAgentBench: https://arxiv.org/html/2606.19787
-- LLM 可观测性对比（OTel GenAI）: https://signoz.io/comparisons/llm-observability-tools/
+## 参考
+- MathModelAgent: https://github.com/jihe520/MathModelAgent
+- MM-Agent / MM-Bench: https://github.com/usail-hkust/LLM-MM-Agent ，论文 https://huggingface.co/papers/2505.14148
+- ModelingAgent / ModelingBench: https://arxiv.org/abs/2505.15068 ，https://www.alphaxiv.org/benchmarks/university-of-illinois-at-urbana-champaign/modelingbench
+- Inspect AI: https://inspect.aisi.org.uk/
+- 通用框架调研（AgentCompass、Harbor、τ-bench 等）: [survey-and-optimization-idea.md](./survey-and-optimization-idea.md)
